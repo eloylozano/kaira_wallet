@@ -1,0 +1,94 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/forms';
+@plugin '@tailwindcss/typography';
+
+/* --- VARIABLES GLOBALES Y TEMA OSCURO (Default) --- */
+:root {
+    /* Paleta Emerald Tech */
+    --primary: #10b981;      /* Esmeralda */
+    --primary-glow: rgba(16, 185, 129, 0.4);
+    --secondary: #34d399;    /* Menta */
+    --accent: #22d3ee;       /* Cian */
+    
+    /* Estados */
+    --success: #10b981;
+    --danger: #f43f5e;
+    --warning: #fbbf24;
+
+    /* Fondo Dark OLED con toque esmeralda profundo */
+    --bg-gradient: radial-gradient(circle at 50% 0%, #062d24 0%, #020617 100%);
+    
+    /* Glassmorphism Dark */
+    --glass-bg: rgba(255, 255, 255, 0.04);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-blur: 16px;
+    
+    /* Texto */
+    --text-main: #ffffff;
+    --text-muted: #94a3b8;
+    --nav-bg: rgba(7, 10, 15, 0.85);
+
+    /* Safe Areas */
+    --safe-area-top: env(safe-area-inset-top, 0px);
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* --- TEMA CLARO (Sobreescritura) --- */
+[data-theme="light"] {
+    --bg-gradient: radial-gradient(circle at 50% 0%, #dcfce7 0%, #f8fafc 70%);
+    
+    --primary: #059669;
+    --primary-glow: rgba(5, 150, 105, 0.2);
+    
+    --text-main: #0f172a;
+    --text-muted: #64748b;
+    
+    --glass-bg: rgba(0, 0, 0, 0.04);
+    --glass-border: rgba(0, 0, 0, 0.08);
+    --nav-bg: rgba(255, 255, 255, 0.8);
+}
+
+/* --- OPTIMIZACIÓN DE ESTILOS BASE --- */
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    /* Solo aplicamos transición a colores para no afectar al scroll */
+    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+}
+
+body {
+    margin: 0;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: var(--bg-gradient);
+    background-attachment: fixed;
+    color: var(--text-main);
+    min-height: 100vh;
+    /* Mejora de renderizado de fuentes */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Tipografía coherente */
+h1, h2, h3, h4, span, p, label {
+    color: var(--text-main);
+}
+
+/* Utilidades de Cristal */
+.glass-panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+}
+
+.glass-nav {
+    background: var(--nav-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--glass-border);
+}
+
+/* Utility para el brillo esmeralda */
+.glow-primary {
+    box-shadow: 0 0 15px var(--primary-glow);
+}
