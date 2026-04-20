@@ -11,7 +11,7 @@ load_dotenv()
 # En local: postgresql://user:pass@localhost:5432/kaira_wallet
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql://user:pass@localhost:5432/kaira_wallet"
+    "postgresql://user:pass@localhost:5433/kaira_wallet"
 )
 
 engine = create_engine(DATABASE_URL)

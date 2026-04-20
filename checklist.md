@@ -9,13 +9,13 @@
 * [x] **PostgreSQL:** Contenedor de Docker corriendo (es mejor que SQLite para escalar a IA por la gestión de tipos de datos y concurrencia).
 
 ### 🛠️ 2. Backend (FastAPI - Escalable)
-* [ ] **Estructura de API REST:** Endpoints definidos para `/ingresos`, `/gastos` y `/categorias`.
+* [X] **Estructura de API REST:** Endpoints definidos para `/ingresos`, `/gastos` y `/categorias`.
 * [ ] **Autenticación JWT:** Implementada para asegurar que solo tú accedas a tus datos financieros.
 * [ ] **Capa de Persistencia:** Uso de SQLAlchemy o Tortoise ORM para facilitar la migración de datos en el futuro.
 * [ ] **Logging:** Configurado para registrar errores, fundamental para cuando la app actúe como servidor 24/7.
 
 ### 📱 3. Frontend (Svelte 5 - PWA)
-* [ ] **Diseño Responsive:** Uso de Tailwind CSS para que se vea perfecto en el iPhone 13 y en el monitor de tu PC .
+* [X] **Diseño Responsive:** Uso de Tailwind CSS para que se vea perfecto en el iPhone 13 y en el monitor de tu PC .
 * [ ] **Manifest.json:** Configurado con `display: standalone` y `background_color` para que parezca nativa en iOS.
 * [ ] **Service Workers:** Configuración básica para permitir el uso offline (importante para anotar gastos sin cobertura).
 * [ ] **Iconografía:** Assets de iconos en diferentes tamaños (192x192, 512x512) para que el logo aparezca en el escritorio del iPhone.

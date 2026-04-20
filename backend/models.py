@@ -1,5 +1,6 @@
 import enum
-from sqlalchemy import Column, Enum, Integer, String, Float, DateTime, ForeignKey, Boolean, Text
+# 1. Importamos Enum como SQLEnum para que no choque con el enum de Python
+from sqlalchemy import Column, Enum as SQLEnum, Integer, String, Numeric, DateTime, ForeignKey, Boolean, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database import Base
@@ -20,7 +21,6 @@ class User(Base):
     hashed_password = Column(String)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
-    # Relaciones
     categories = relationship("Category", back_populates="user", foreign_keys="Category.user_id")
     transactions = relationship("Transaction", back_populates="user")
 
@@ -30,19 +30,15 @@ class Category(Base):
     name = Column(String, nullable=False)
     description = Column(String, nullable=True)
     
-    # Tipo de transacción a la que pertenece esta categoría
-    transaction_type = Column(Enum(TransactionType), nullable=False)
+    # 2. Aquí ya lo tenías bien: SQLEnum
+    transaction_type = Column(SQLEnum(TransactionType), nullable=False)
     
-    # Relación jerárquica para subcategorías
-    # Ej: parent_id = 1 (Transporte) -> esto es una subcategoría
     parent_id = Column(Integer, ForeignKey("categories.id"), nullable=True)
     parent = relationship("Category", remote_side=[id], backref="subcategories")
     
-    # Para diferenciar categorías predefinidas de personalizadas
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # NULL = predefinida
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     is_predefined = Column(Boolean, default=False)
     
-    # Relaciones
     user = relationship("User", back_populates="categories", foreign_keys=[user_id])
     transactions = relationship("Transaction", back_populates="category")
     
@@ -52,26 +48,22 @@ class Transaction(Base):
     __tablename__ = "transactions"
     id = Column(Integer, primary_key=True, index=True)
     
-    # Datos principales
-    type = Column(Enum(TransactionType), nullable=False)
-    amount = Column(Float, nullable=False)
+    # 3. AQUÍ ESTABA EL ERROR: Cambia Enum por SQLEnum
+    type = Column(SQLEnum(TransactionType), nullable=False)
+    
+    amount = Column(Numeric(12, 2), nullable=False)
     date = Column(DateTime(timezone=True), server_default=func.now())
     
-    # Categorización
     category_id = Column(Integer, ForeignKey("categories.id"), nullable=False)
-    
-    # Información adicional
     description = Column(String, nullable=True)
-    notes = Column(Text, nullable=True)  # Comentarios/notas detalladas
+    notes = Column(Text, nullable=True)
     
-    # Tipo de periodicidad (fijo o variable)
-    frequency = Column(Enum(FrequencyType), default=FrequencyType.variable)
+    # 4. AQUÍ TAMBIÉN: Cambia Enum por SQLEnum
+    frequency = Column(SQLEnum(FrequencyType), default=FrequencyType.variable)
     
-    # Metadatos
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
-    # Relaciones
     user = relationship("User", back_populates="transactions")
     category = relationship("Category", back_populates="transactions")

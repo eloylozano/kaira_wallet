@@ -46,7 +46,7 @@
 		<h1 class="text-4xl font-bold tracking-tight uppercase">Settings</h1>
 	</header>
 
-	<section class="glass-panel rounded-3xl flex gap-2 p-1.5">
+	<section class="glass-panel flex gap-2 rounded-3xl p-1.5">
 		{#each themes as t}
 			<button
 				onclick={() => theme.set(t.id)}
@@ -66,7 +66,6 @@
 				<p class="text-primary/70 px-4 text-[10px] font-black tracking-[0.3em] uppercase">
 					{section.name}
 				</p>
-
 				<GlassCard class="overflow-hidden !rounded-[32px]">
 					<div class="flex flex-col">
 						{#each section.items as item, i}
@@ -115,3 +114,9 @@
 		</div>
 	</button>
 </div>
+
+<style>
+	header {
+		padding-top: calc(1rem + var(--safe-area-top));
+	}
+</style>
