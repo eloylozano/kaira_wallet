@@ -11,7 +11,7 @@
 <button 
     {onclick}
     class="relative overflow-hidden text-[10px] font-black uppercase tracking-widest px-5 py-2.5 rounded-full 
-    border transition-all active:scale-95
+    border active:scale-95
     {variant === 'danger' 
         ? 'bg-rose-500/10 border-rose-500/30 text-rose-500 hover:bg-rose-500/20' 
         : 'btn-glass-normal'

@@ -1,19 +1,22 @@
-// lib/utils/haptics.ts
 export const haptics = {
+    // Una vibración muy suave (ideal para botones numéricos)
     light: () => {
-        // Verificamos si el navegador soporta vibración
         if (typeof navigator !== 'undefined' && navigator.vibrate) {
-            navigator.vibrate(10); // Vibración corta de 10ms
+            navigator.vibrate(10); // 10ms es casi imperceptible pero se siente "físico"
         }
     },
-    success: () => {
-        if (typeof navigator !== 'undefined' && navigator.vibrate) {
-            navigator.vibrate(); // Doble pulsación suave
-        }
-    },
+    // Una vibración doble (ideal para cuando algo sale mal/error)
     error: () => {
         if (typeof navigator !== 'undefined' && navigator.vibrate) {
-            navigator.vibrate(); // Vibración más intensa
+            navigator.vibrate(20);
+            navigator.vibrate(0);
+            navigator.vibrate(20);
+        }
+    },
+    // Vibración de éxito (algo se guardó correctamente)
+    success: () => {
+        if (typeof navigator !== 'undefined' && navigator.vibrate) {
+            navigator.vibrate(30);
         }
     }
 };

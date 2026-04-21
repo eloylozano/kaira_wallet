@@ -1,6 +1,13 @@
 <script>
   import { page } from '$app/stores';
 
+  // Función rápida para vibrar al tocar el botón principal
+  const playHaptic = () => {
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate(15);
+    }
+  };
+
   const icons = {
     home: `<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>`,
     transactions: `<rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/>`,
@@ -11,7 +18,7 @@
   const navItems = [
     { name: 'Inicio', path: '/', icon: icons.home },
     { name: 'Historial', path: '/transactions', icon: icons.transactions },
-    { name: 'spacer', path: '/transactions' }, 
+    { name: 'spacer', path: '/transactions/new' }, 
     { name: 'Stats', path: '/stats', icon: icons.stats },
     { name: 'Ajustes', path: '/settings', icon: icons.settings }
   ];
@@ -38,7 +45,7 @@
               {@html item.icon}
             </svg>
             {#if activePath === item.path}
-                <div class="glow-dot"></div>
+              <div class="glow-dot"></div>
             {/if}
           </div>
           <span class="nav-label">{item.name}</span>
@@ -46,17 +53,21 @@
       {/if}
     {/each}
 
-    <button class="fab-button active-tap" aria-label="Nueva transacción">
+    <a 
+      href="/transactions/new" 
+      class="fab-button active-tap" 
+      onclick={playHaptic}
+      aria-label="Nueva transacción"
+    >
         <div class="fab-inner">
             <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
                 <line x1="5" y1="12" x2="19" y2="12"></line>
             </svg>
         </div>
-    </button>
+    </a>
   </div>
 </nav>
-
 <style>
   .fixed-bottom {
     position: fixed;

@@ -1,32 +1,42 @@
+Para que **Kaira** pase de ser un prototipo visual a una herramienta real, este es el orden lógico que yo seguiría. He diseñado este checklist priorizando el **"Core Loop"** (el ciclo básico de uso): si no puedes meter datos, no tienes nada que ver ni que exportar.
 
+### 🏁 Checklist de Desarrollo: Hoja de Ruta
 
-# 🚀 Checklist: App de Gastos Inteligente (V1 & Preparación V2)
+#### 1. El Formulario de Transacción (Prioridad Máxima 🔴)
+Sin datos, la app está vacía. Es lo primero que debes pulir.
+* [ ] Crear el componente de entrada de datos (monto, categoría, descripción).
+* [ ] Implementar un teclado numérico personalizado (tipo cajero) para que se sienta iOS.
+* [ ] Guardar los datos en un Store o LocalStorage.
+* [ ] Añadir la vibración que ya configuramos al confirmar el gasto.
 
-### 🏗️ 1. Entorno de Desarrollo (En Windows)
-* [x] **Docker Desktop:** Instalado para gestionar los contenedores de la base de datos y el backend de forma aislada.
-* [x] **Node.js & NPM:** Para el frontend con Svelte 5.
-* [x] **Python 3.11+:** Entorno virtual configurado para FastAPI.
-* [x] **PostgreSQL:** Contenedor de Docker corriendo (es mejor que SQLite para escalar a IA por la gestión de tipos de datos y concurrencia).
+#### 2. El Historial de Movimientos (Prioridad Alta 🟠)
+Necesitas ver lo que acabas de anotar para sentir que la app "funciona".
+* [ ] Crear una lista scrollable de transacciones.
+* [ ] Agrupar gastos por fecha (Hoy, Ayer, esta semana).
+* [ ] Implementar el "Swipe to delete" (deslizar para borrar), muy típico de iPhone.
+* [ ] Diseño de las filas con iconos por categoría.
 
-### 🛠️ 2. Backend (FastAPI - Escalable)
-* [X] **Estructura de API REST:** Endpoints definidos para `/ingresos`, `/gastos` y `/categorias`.
-* [ ] **Autenticación JWT:** Implementada para asegurar que solo tú accedas a tus datos financieros.
-* [ ] **Capa de Persistencia:** Uso de SQLAlchemy o Tortoise ORM para facilitar la migración de datos en el futuro.
-* [ ] **Logging:** Configurado para registrar errores, fundamental para cuando la app actúe como servidor 24/7.
+#### 3. El Dashboard / Inicio (Prioridad Media 🟡)
+Aquí es donde la app se pone "bonita" y útil de un vistazo.
+* [ ] Crear la tarjeta de "Balance Total".
+* [ ] Gráfico simple (quizás de donuts o barras) de gastos por categoría.
+* [ ] Resumen de gastos del mes actual vs mes anterior.
 
-### 📱 3. Frontend (Svelte 5 - PWA)
-* [X] **Diseño Responsive:** Uso de Tailwind CSS para que se vea perfecto en el iPhone 13 y en el monitor de tu PC .
-* [ ] **Manifest.json:** Configurado con `display: standalone` y `background_color` para que parezca nativa en iOS.
-* [ ] **Service Workers:** Configuración básica para permitir el uso offline (importante para anotar gastos sin cobertura).
-* [ ] **Iconografía:** Assets de iconos en diferentes tamaños (192x192, 512x512) para que el logo aparezca en el escritorio del iPhone.
-
-### 📊 4. Análisis y Servidor
-* [ ] **Conexión Power BI:** Configurar el conector de PostgreSQL para visualizar tus métricas actuales en Windows .
-* [ ] **Configuración VPN:** (WireGuard o Tailscale) para que tu iPhone 13 pueda hablar con tu PC/Servidor de forma segura desde fuera de casa.
-
-### 🧠 5. Preparación para la V2 (IA & Patrones)
-* [ ] **Histórico Limpio:** Asegurar que cada registro de gasto tenga una etiqueta de "Categoría" y "Fecha" normalizada.
-* [ ] **Módulo de Ingesta:** Crear un script de exportación de datos en formato `.csv` o `.json` para entrenar modelos de Scikit-learn en el futuro.
-* [ ] **Almacenamiento de Embeddings:** (Opcional) Si planeas usar IA para clasificar tickets, deja espacio en la base de datos para vectores (pgvector en Postgres).
+#### 4. Exportación y Limpieza (Prioridad Baja 🟢)
+Lo que mencionabas antes. Se hace al final porque depende de tener muchos datos para probar.
+* [ ] Generar el archivo CSV a partir de lo guardado en LocalStorage.
+* [ ] Función de "Borrar todo" (con el modal de confirmación que ya tienes).
+* [ ] Pantalla de bienvenida (Onboarding) para cuando alguien abre la app por primera vez.
 
 ---
+
+### ¿Por dónde empezar hoy?
+
+Si ya tienes el **PinLock** y los **Ajustes** medio listos, yo iría directo a por el **Formulario para crear transacción**. 
+
+Es la parte más divertida de diseñar porque puedes jugar con:
+1.  **Selector de categorías** con iconos sutiles.
+2.  **Input gigante** para el dinero (que se sienta importante).
+3.  **Transiciones**: Que el formulario salga desde abajo (tipo *Sheet* de iOS).
+
+**¿Quieres que empecemos a montar el formulario de entrada de gastos con ese estilo Glassmorphism?** O si prefieres, podemos atacar el Historial para ver cómo se listan los datos. ¡Tú diriges!

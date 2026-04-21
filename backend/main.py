@@ -1,23 +1,26 @@
-from fastapi import FastAPI, Request, HTTPException, status
+from fastapi import FastAPI, Request, status, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse 
+from fastapi.security import APIKeyHeader
 import models
 from database import engine, get_db
 from routers import categories, transactions, stats
 
-# --- CONFIGURACIÓN DE SEGURIDAD ---
-ACCESS_PIN = "8061" 
-EXEMPT_PATHS = ["/health", "/docs", "/openapi.json"] # Rutas que no requieren PIN
-
 # 1. Creación de tablas automática
 models.Base.metadata.create_all(bind=engine)
 
+# 2. Definimos el esquema de seguridad
+api_key_header = APIKeyHeader(name="X-Kaira-PIN", auto_error=False)
+
+# 3. CREAMOS LA APP (Esto debe ir antes de los middlewares)
 app = FastAPI(
     title="Kaira Wallet API",
     description="API de gestión de gastos con protección por PIN",
-    version="2.2.0"
+    version="2.2.0",
+    dependencies=[Depends(api_key_header)] 
 )
 
-# 2. Configuración de CORS
+# 4. Configuración de CORS (Ahora sí, sobre 'app')
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], 
@@ -26,32 +29,33 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# --- 3. MIDDLEWARE DE PIN (El "Portero") ---
+# --- CONFIGURACIÓN DE SEGURIDAD ---
+ACCESS_PIN = "8061" 
+EXEMPT_PATHS = ["/health", "/docs", "/openapi.json", "/favicon.ico"] 
+
 @app.middleware("http")
 async def verify_pin(request: Request, call_next):
-    # Si la ruta es pública (como el health check), la dejamos pasar
-    if request.url.path in EXEMPT_PATHS:
+    if request.method == "OPTIONS":
         return await call_next(request)
-    
-    # Buscamos el PIN en los headers de la petición
+
+    path = request.url.path
+    if path in EXEMPT_PATHS or path.startswith("/docs") or path.startswith("/openapi.json"):
+        return await call_next(request)
+    # Verificar el PIN
     user_pin = request.headers.get("X-Kaira-PIN")
     
     if user_pin != ACCESS_PIN:
-        return await request.app.middleware_stack.build_response(
-            request, 
-            HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, 
-                detail="PIN de acceso inválido o no proporcionado"
-            )
+        return JSONResponse(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            content={"detail": "PIN de acceso inválido o no proporcionado"}
         )
     
     return await call_next(request)
 
-# 4. Registro de Routers
+# 5. Registro de Routers
 app.include_router(categories.router)
 app.include_router(transactions.router)
 app.include_router(stats.router)
-
 # 5. Eventos de sistema
 @app.on_event("startup")
 def startup_event():
@@ -101,3 +105,5 @@ def init_predefined_categories(db):
             )
             db.add(category)
     db.commit()
+    
+# uvicorn main:app --reload --host 0.0.0.0 --port 8000
