@@ -1,16 +1,22 @@
 <script>
     import './layout.css';
     import TabBar from '$lib/components/layout/TabBar.svelte';
+    // CAMBIO: Importamos 'auth' en lugar de 'isUnlocked'
+    import { auth } from '$lib/stores/auth'; 
+    import PinLock from '$lib/components/layout/PinLock.svelte';
 </script>
 
 <div class="app-container">
-    <main class="content-wrapper">
-        <slot />
-    </main>
+    {#if !$auth}
+        <PinLock />
+    {:else}
+        <main class="content-wrapper">
+            <slot />
+        </main>
 
-    <TabBar />
+        <TabBar />
+    {/if}
 </div>
-
 <style>
     .app-container {
         display: flex;
