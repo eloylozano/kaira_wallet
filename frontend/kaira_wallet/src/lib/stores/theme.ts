@@ -1,21 +1,26 @@
 import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
 
-// 1. Definimos el tema inicial
-// Si estamos en el navegador, buscamos en localStorage. 
-// Si no hay nada o estamos en el servidor (SSR), por defecto es 'dark'.
-const initialTheme = browser ? (localStorage.getItem('theme') ?? 'dark') : 'dark';
+// 1. Función para obtener el tema del sistema
+const getSystemTheme = () => {
+    if (!browser) return 'dark';
+    return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+};
 
-export const theme = writable<string>(initialTheme);
+// 2. Crear el store con el valor inicial del sistema
+export const theme = writable(browser ? (localStorage.getItem('theme') || getSystemTheme()) : 'dark');
 
-// 2. Suscripción para reaccionar a los cambios de tema
-theme.subscribe((value) => {
-    if (browser) {
-        // Guardamos la preferencia del usuario
-        localStorage.setItem('theme', value);
-        
-        // Aplicamos el atributo al elemento raíz (html)
-        // Esto activará las variables CSS de [data-theme="light"] en tu layout.css
+// 3. Suscribirse para aplicar el cambio al documento y guardarlo
+if (browser) {
+    theme.subscribe((value) => {
         document.documentElement.setAttribute('data-theme', value);
-    }
-});
+        localStorage.setItem('theme', value);
+    });
+
+    // 4. ESCUCHAR CAMBIOS EN TIEMPO REAL
+    // Si el usuario cambia el modo del sistema mientras usa la app
+    window.matchMedia('(prefers-color-scheme: light)').addEventListener('change', (e) => {
+        const newTheme = e.matches ? 'light' : 'dark';
+        theme.set(newTheme);
+    });
+}

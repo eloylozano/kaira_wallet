@@ -5,17 +5,17 @@
 /* --- VARIABLES GLOBALES Y TEMA OSCURO (Default) --- */
 :root {
     /* Paleta Emerald Tech */
-    --primary: #10b981;      /* Esmeralda */
+    --primary: #10b981;
     --primary-glow: rgba(16, 185, 129, 0.4);
-    --secondary: #34d399;    /* Menta */
-    --accent: #22d3ee;       /* Cian */
+    --secondary: #34d399;
+    --accent: #22d3ee;
     
     /* Estados */
     --success: #10b981;
     --danger: #f43f5e;
     --warning: #fbbf24;
 
-    /* Fondo Dark OLED con toque esmeralda profundo */
+    /* Fondo Dark OLED */
     --bg-gradient: radial-gradient(circle at 50% 0%, #062d24 0%, #020617 100%);
     
     /* Glassmorphism Dark */
@@ -40,19 +40,25 @@
     --primary: #059669;
     --primary-glow: rgba(5, 150, 105, 0.2);
     
-    --text-main: #0f172a;
+    --text-main: #0f172a; /* Azul muy oscuro, casi negro */
     --text-muted: #64748b;
     
-    --glass-bg: rgba(0, 0, 0, 0.04);
+    --glass-bg: rgba(255, 255, 255, 0.4); /* Más claro para modo luz */
     --glass-border: rgba(0, 0, 0, 0.08);
     --nav-bg: rgba(255, 255, 255, 0.8);
+}
+
+/* --- CONFIGURACIÓN DE TEMA TAILWIND --- */
+@theme {
+    --color-primary: var(--primary);
+    --color-main: var(--text-main);
+    --color-muted: var(--text-muted);
 }
 
 /* --- OPTIMIZACIÓN DE ESTILOS BASE --- */
 * {
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
-    /* Solo aplicamos transición a colores para no afectar al scroll */
     transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
 }
 
@@ -61,17 +67,20 @@ body {
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     background: var(--bg-gradient);
     background-attachment: fixed;
-    color: var(--text-main);
+    color: var(--text-main); /* Forzamos el uso de la variable */
     min-height: 100vh;
-    /* Mejora de renderizado de fuentes */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
 
-/* Tipografía coherente */
-h1, h2, h3, h4, span, p, label {
-    color: var(--text-main);
+/* Forzar colores de texto dinámicos en elementos comunes */
+h1, h2, h3, h4, h5, h6, p, span, label, div {
+    color: inherit; /* Que hereden del body o del padre */
 }
+
+/* Utilidades manuales de apoyo */
+.text-main { color: var(--text-main) !important; }
+.text-muted { color: var(--text-muted) !important; }
 
 /* Utilidades de Cristal */
 .glass-panel {
@@ -88,7 +97,6 @@ h1, h2, h3, h4, span, p, label {
     border-top: 1px solid var(--glass-border);
 }
 
-/* Utility para el brillo esmeralda */
 .glow-primary {
     box-shadow: 0 0 15px var(--primary-glow);
 }
