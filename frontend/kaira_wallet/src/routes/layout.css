@@ -59,42 +59,61 @@
 * {
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
-    transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+    touch-action: manipulation;
+}
+
+html {
+    /* Eliminamos el rebote para que la app parezca una sola pieza */
+    overscroll-behavior: none;
+    background-color: var(--bg-color);
 }
 
 body {
     margin: 0;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     background: var(--bg-gradient);
+    background-color: var(--bg-color);
     background-attachment: fixed;
-    color: var(--text-main); /* Forzamos el uso de la variable */
+    color: var(--text-main);
     min-height: 100vh;
+    /* Sin padding top aquí para que el fondo suba hasta el cristal superior */
+    padding-bottom: var(--safe-area-bottom);
     -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
 }
 
-/* Forzar colores de texto dinámicos en elementos comunes */
-h1, h2, h3, h4, h5, h6, p, span, label, div {
-    color: inherit; /* Que hereden del body o del padre */
+/* --- REGLA GENERAL DE TÍTULOS (Header) --- */
+.ios-header {
+    /* El título sube al área segura pero con un margen mínimo para no tocar el reloj */
+    padding-top: calc(var(--safe-area-top) + 0.5rem); 
+    padding-left: 0.75rem; /* Padding horizontal reducido */
+    padding-right: 0.75rem;
+    margin-bottom: 1rem;
 }
 
-/* Utilidades manuales de apoyo */
-.text-main { color: var(--text-main) !important; }
-.text-muted { color: var(--text-muted) !important; }
-
-/* Utilidades de Cristal */
-.glass-panel {
-    background: var(--glass-bg);
-    backdrop-filter: blur(var(--glass-blur));
-    -webkit-backdrop-filter: blur(var(--glass-blur));
-    border: 1px solid var(--glass-border);
+.ios-header h1 {
+    font-size: 1.875rem; /* 3xl - un poco más compacto */
+    letter-spacing: -0.05em; /* Letras más juntas para ganar espacio */
+    line-height: 1.1;
 }
 
+/* --- AJUSTE TAB BAR (Nav Inferior) --- */
 .glass-nav {
     background: var(--nav-bg);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-top: 1px solid var(--glass-border);
+    
+    /* Padding inferior inteligente para la curva del iPhone */
+    padding-bottom: calc(var(--safe-area-bottom) + 8px);
+    padding-top: 10px;
+}
+
+/* --- UTILIDADES DE CRISTAL --- */
+.glass-panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
 }
 
 .glow-primary {

@@ -63,7 +63,7 @@
     bottom: 0;
     left: 0;
     right: 0;
-    height: calc(70px + var(--safe-area-bottom));
+    height: calc(60px + var(--safe-area-bottom));
     padding-bottom: var(--safe-area-bottom);
     z-index: 1000;
     display: flex;

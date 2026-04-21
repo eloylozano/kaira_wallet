@@ -1,120 +1,159 @@
 <script lang="ts">
-    import { theme } from '$lib/stores/theme';
-    import GlassCard from '$lib/components/ui/GlassCard.svelte';
-    import GlassToggle from '$lib/components/ui/GlassToggle.svelte';
-    import ChangePinModal from '$lib/components/ui/ChangePinModal.svelte';
-    import ConfirmModal from '$lib/components/ui/ConfirmModal.svelte'; // Nuevo componente
-    import { auth } from '$lib/stores/auth';
+	import { theme } from '$lib/stores/theme';
+	import GlassCard from '$lib/components/ui/GlassCard.svelte';
+	import GlassToggle from '$lib/components/ui/GlassToggle.svelte';
+	import GlassButton from '$lib/components/ui/GlassButton.svelte';
+	import ChangePinModal from '$lib/components/ui/ChangePinModal.svelte';
+	import ConfirmModal from '$lib/components/ui/ConfirmModal.svelte';
+	import { auth } from '$lib/stores/auth';
 
-    // Estados
-    let notifications = $state(true);
-    let biometrics = $state(false);
-    let isPinModalOpen = $state(false);
-    let isConfirmLockOpen = $state(false); // Estado para el modal de bloqueo
+	const haptics = {
+		light: () => {
+			if (typeof navigator !== 'undefined' && navigator.vibrate) {
+				navigator.vibrate(10);
+			}
+		}
+	};
 
-    const themes = [
-        { id: 'dark', name: 'Dark Mode' },
-        { id: 'light', name: 'Light Mode' }
-    ];
+	let useHaptics = $state(true);
+	let isPinModalOpen = $state(false);
+	let isConfirmLockOpen = $state(false);
+	let isConfirmDeleteOpen = $state(false);
 
-    // --- LÓGICA DE SEGURIDAD ---
-    
-    function handleLockConfirm() {
-        auth.lock();
-        isConfirmLockOpen = false;
-    }
+	const themes = [
+		{ id: 'dark', name: 'Modo Noche' },
+		{ id: 'light', name: 'Modo Claro' }
+	];
 
-    // --- SECCIONES ---
+	function handleLockConfirm() {
+		auth.lock();
+		isConfirmLockOpen = false;
+	}
 
-    const sections = [
-        {
-            name: 'Cuenta',
-            items: [
-                { label: 'Perfil', type: 'link' },
-                { label: 'Exportar Datos', type: 'link' }
-            ]
-        },
-        {
-            name: 'Seguridad',
-            items: [
-                {
-                    label: 'Face ID / Huella',
-                    type: 'toggle',
-                    value: () => biometrics,
-                    set: (v: boolean) => (biometrics = v)
-                },
-                { 
-                    label: 'Cambiar PIN de acceso', 
-                    type: 'action', 
-                    action: () => isPinModalOpen = true,
-                    btnText: 'Cambiar'
-                },
-                { 
-                    label: 'Bloquear sesión actual', 
-                    type: 'action', 
-                    action: () => isConfirmLockOpen = true, // Abrimos el modal personalizado
-                    color: 'text-rose-500',
-                    btnText: 'Bloquear'
-                }
-            ]
-        }
-    ];
+	function handleClearAllData() {
+		isConfirmDeleteOpen = false;
+		if (useHaptics) haptics.light();
+	}
+
+	const sections = [
+		{
+			name: 'Experiencia',
+			items: [
+				{
+					label: 'Vibración al tocar',
+					type: 'toggle',
+					value: () => useHaptics,
+					set: (v: boolean) => {
+						useHaptics = v;
+						if (v) haptics.light();
+					}
+				}
+			]
+		},
+		{
+			name: 'Seguridad',
+			items: [
+				{
+					label: 'PIN de acceso',
+					type: 'action',
+					action: () => (isPinModalOpen = true),
+					btnText: 'Cambiar'
+				},
+				{
+					label: 'Bloquear sesión',
+					type: 'action',
+					variant: 'danger',
+					action: () => (isConfirmLockOpen = true),
+					btnText: 'Bloquear'
+				}
+			]
+		},
+		{
+			name: 'Datos',
+			items: [
+				{
+					label: 'Exportar historial (CSV)',
+					type: 'action',
+					action: () => {
+						if (useHaptics) haptics.light();
+					},
+					btnText: 'Exportar'
+				},
+				{
+					label: 'Borrar todos los gastos',
+					type: 'action',
+					variant: 'danger',
+					action: () => (isConfirmDeleteOpen = true),
+					btnText: 'Borrar todo'
+				}
+			]
+		}
+	];
 </script>
 
-<div class="mx-auto flex w-full max-w-xl flex-col gap-8 px-4 py-10">
-    <header class="mb-4">
-        <h1 class="text-4xl font-bold tracking-tight uppercase">Settings</h1>
+<div class="mx-auto flex w-full max-w-xl flex-col gap-6 px-2 pb-10">
+    <header class="ios-header">
+        <h1 class="text-4xl font-black tracking-tight uppercase italic">
+            Ajustes
+        </h1>
     </header>
 
-    <section class="glass-panel relative flex gap-2 rounded-3xl p-1.5 bg-white/5 border border-white/10">
+    <section
+        class="glass-panel relative flex gap-1 rounded-2xl border border-black/5 bg-black/5 p-1 dark:border-white/10 dark:bg-white/5"
+    >
         <div
-            class="absolute top-1.5 bottom-1.5 left-1.5 w-[calc(50%-6px)] rounded-2xl bg-primary shadow-lg transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
+            class="absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] rounded-xl bg-primary shadow-lg transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
             style="transform: translateX({$theme === 'light' ? '100%' : '0%'})"
         ></div>
 
         {#each themes as t}
             <button
-                onclick={() => theme.set(t.id)}
-                class="relative z-10 flex-1 cursor-pointer rounded-2xl py-3 text-sm font-bold transition-colors duration-500
-                {$theme === t.id ? 'text-white' : 'opacity-50 hover:opacity-100'}"
+                onclick={() => {
+                    theme.set(t.id);
+                    if (useHaptics) haptics.light();
+                }}
+                class="relative z-10 flex-1 cursor-pointer rounded-xl py-2.5 text-sm font-bold transition-colors duration-500
+                {$theme === t.id ? 'text-white' : 'opacity-40'}"
             >
                 {t.name}
             </button>
         {/each}
     </section>
 
-    <div class="space-y-8">
+    <div class="space-y-6">
         {#each sections as section}
-            <div class="flex flex-col gap-3">
-                <p class="px-4 text-[10px] font-black tracking-[0.3em] text-primary uppercase opacity-70">
+            <div class="flex flex-col gap-2">
+                <p class="px-3 text-[10px] font-black tracking-[0.3em] text-primary uppercase opacity-70">
                     {section.name}
                 </p>
 
-                <GlassCard class="overflow-hidden !rounded-[32px]">
+                <GlassCard class="overflow-hidden !rounded-[24px]">
                     <div class="flex flex-col">
                         {#each section.items as item, i}
-                            <div class="group flex items-center justify-between p-5 transition-all">
-                                <div class="flex items-center gap-4">
-                                    <span class="font-bold {item.color || ''}">{item.label}</span>
+                            <div class="flex items-center justify-between px-4 py-3.5 transition-all">
+                                <div class="flex items-center gap-3">
+                                    <span class="text-sm sm:text-base leading-tight font-semibold tracking-tight">
+                                        {item.label}
+                                    </span>
                                 </div>
 
                                 {#if item.type === 'toggle'}
-                                    <GlassToggle checked={item.value()} onchange={item.set} />
+                                    <GlassToggle
+                                        checked={item.value()}
+                                        onchange={(v) => {
+                                            item.set(v);
+                                            if (useHaptics) haptics.light();
+                                        }}
+                                    />
                                 {:else if item.type === 'action'}
-                                    <button 
-                                        onclick={item.action}
-                                        class="text-[10px] font-black uppercase tracking-widest px-4 py-2 rounded-full bg-white/5 border border-white/10 hover:bg-white/10 active:scale-95 transition-all {item.color || 'text-white'}"
-                                    >
-                                        {item.btnText || 'Ejecutar'}
-                                    </button>
-                                {:else}
-                                    <button aria-label="Navegar"
-                                        class="opacity-40 transition-all group-hover:translate-x-1 group-hover:opacity-100"
-                                    >
-                                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="3">
-                                            <path d="m9 18 6-6-6-6" />
-                                        </svg>
-                                    </button>
+                                    <GlassButton
+                                        onclick={() => {
+                                            item.action();
+                                            if (useHaptics) haptics.light();
+                                        }}
+                                        text={item.btnText || 'Ejecutar'}
+                                        variant={item.variant || 'normal'}
+                                    />
                                 {/if}
                             </div>
 
@@ -131,40 +170,46 @@
 
 <ChangePinModal 
     isOpen={isPinModalOpen} 
-    onTouchOutside={() => isPinModalOpen = false}
-    onComplete={() => isPinModalOpen = false}
+    onComplete={() => isPinModalOpen = false} 
 />
 
 <ConfirmModal 
-    isOpen={isConfirmLockOpen}
-    title="Seguridad"
-    message="¿Quieres bloquear la aplicación y proteger tu sesión ahora?"
-    confirmText="Bloquear ahora"
-    onConfirm={handleLockConfirm}
-    onCancel={() => isConfirmLockOpen = false}
+    isOpen={isConfirmLockOpen} 
+    title="Seguridad" 
+    message="¿Quieres bloquear la sesión ahora?" 
+    confirmText="Bloquear" 
+    onConfirm={handleLockConfirm} 
+    onCancel={() => isConfirmLockOpen = false} 
+/>
+
+<ConfirmModal 
+    isOpen={isConfirmDeleteOpen} 
+    title="Borrar todo" 
+    message="Esta acción eliminará todos tus gastos permanentemente. ¿Estás seguro?" 
+    confirmText="Eliminar permanentemente" 
+    onConfirm={handleClearAllData} 
+    onCancel={() => isConfirmDeleteOpen = false} 
 />
 
 <style>
-    header {
-        padding-top: calc(1rem + var(--safe-area-top));
+    /* Aseguramos que los textos hereden las variables del CSS global */
+    h1, span {
+        color: var(--text-main);
     }
 
-    .space-y-8 > div {
-        animation: slideIn 0.6s ease forwards;
+    .ios-header {
+        padding-top: var(--safe-area-top);
+        padding-left: 0.5rem;
+        padding-bottom: 0.5rem;
+    }
+
+    .space-y-6 > div {
+        animation: slideIn 0.5s ease forwards;
         opacity: 0;
     }
 
     @keyframes slideIn {
-        from {
-            opacity: 0;
-            transform: translateY(10px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
     }
-
-    .space-y-8 > div:nth-child(1) { animation-delay: 0.1s; }
-    .space-y-8 > div:nth-child(2) { animation-delay: 0.2s; }
 </style>

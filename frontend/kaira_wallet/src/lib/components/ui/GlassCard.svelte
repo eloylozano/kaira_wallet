@@ -9,38 +9,43 @@
 </script>
 
 <div 
-    class="glass-card relative overflow-hidden transition-all duration-300 {className}"
+    class="glass-card relative transition-all duration-200 {className}"
     onclick={onclick}
     role={onclick ? "button" : "presentation"}
     tabindex={onclick ? 0 : -1}
 >
-    <div class="absolute inset-0 bg-gradient-to-b from-white/[0.05] to-transparent pointer-events-none"></div>
+    <div class="absolute inset-0 bg-gradient-to-b from-white/[0.05] to-transparent pointer-events-none rounded-[inherit]"></div>
     
-    {@render children?.()}
+    <div class="relative z-10">
+        {@render children?.()}
+    </div>
 </div>
 
 <style>
     .glass-card {
         background: var(--glass-bg);
-        backdrop-filter: blur(var(--glass-blur));
-        -webkit-backdrop-filter: blur(var(--glass-blur));
+        /* Usamos variables con fallbacks seguros */
+        backdrop-filter: blur(var(--glass-blur, 12px));
+        -webkit-backdrop-filter: blur(var(--glass-blur, 12px));
         border: 1px solid var(--glass-border);
-        /* Sombra más profunda y difusa para dar elevación real */
-        box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+        box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.4);
+        
+        /* CRÍTICO: Previene el parpadeo en Safari/iOS al transformar */
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+        transform: translateZ(0); 
     }
 
-    /* Feedback visual mejorado para Emerald */
+    /* Ajuste de feedback visual: menos agresivo para evitar "shaking" */
     div[role="button"]:active {
-        transform: scale(0.97);
-        border-color: var(--primary);
-        box-shadow: 0 0 20px var(--primary-glow);
+        transform: scale(0.98) translateZ(0);
+        border-color: rgba(255, 255, 255, 0.3);
     }
     
-    /* Hover suave en PC */
     @media (hover: hover) {
         div[role="button"]:hover {
-            background: rgba(255, 255, 255, 0.06);
-            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
         }
     }
 </style>
