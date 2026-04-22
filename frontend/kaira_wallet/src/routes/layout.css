@@ -6,7 +6,7 @@
 :root {
     /* Paleta Emerald Tech */
     --primary: #10b981;
-    --primary-glow: rgba(16, 185, 129, 0.4);
+    --primary-glow: #10b98166;
     --secondary: #34d399;
     --accent: #22d3ee;
     

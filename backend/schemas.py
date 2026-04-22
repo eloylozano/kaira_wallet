@@ -34,6 +34,7 @@ class CategoryBase(BaseModel):
     description: Optional[str] = None
     transaction_type: TransactionType
     parent_id: Optional[int] = None
+    icon: Optional[str] = None
 
 class CategoryCreate(CategoryBase):
     pass
@@ -43,7 +44,7 @@ class Category(CategoryBase):
     is_predefined: bool
     user_id: Optional[int]
     created_at: datetime
-    
+
     class Config:
         from_attributes = True
 
@@ -62,6 +63,7 @@ class TransactionBase(BaseModel):
     description: Optional[str] = None
     category_id: int
     notes: Optional[str] = None
+    date: Optional[datetime] = None
     frequency: FrequencyType = FrequencyType.variable
     is_paid: bool = True  # <-- Añadido con valor por defecto
 
@@ -81,7 +83,6 @@ class Transaction(TransactionBase):
     id: int
     date: datetime
     user_id: int
-    # is_paid se hereda de TransactionBase automáticamente
     created_at: datetime
     updated_at: datetime
     

@@ -11,34 +11,46 @@ USER_ID_MOCK = 1
 @router.post("/", response_model=schemas.Transaction)
 def create_transaction(transaction: schemas.TransactionCreate, db: Session = Depends(get_db)):
     try:
-        # Validar que el usuario existe
         user = db.query(models.User).filter(models.User.id == USER_ID_MOCK).first()
         if not user:
             raise HTTPException(status_code=404, detail=f"Usuario {USER_ID_MOCK} no existe")
-        
-        # Validar que la categoría existe
+
         category = db.query(models.Category).filter(models.Category.id == transaction.category_id).first()
         if not category:
             raise HTTPException(status_code=404, detail=f"Categoría {transaction.category_id} no existe")
-        
-        # 1. Convertimos el esquema a diccionario
-        transaction_data = transaction.model_dump()
-        
-        # 2. LIMPIEZA: Eliminamos 'currency' porque NO existe en el modelo Transaction
-        transaction_data.pop('currency', None)
-        
-        # Si no se proporciona date, usar la fecha actual
-        if transaction_data.get('date') is None:
-            transaction_data['date'] = datetime.now()
-        
-        # 3. Crear la transacción incluyendo el campo is_paid que viene del esquema
-        db_transaction = models.Transaction(**transaction_data, user_id=USER_ID_MOCK)
-        
+
+        data = transaction.model_dump()
+
+        # ❌ limpiar campos que no van al modelo
+        data.pop("currency", None)
+
+        # ⏱ fecha
+        if data.get("date") is None:
+            data["date"] = datetime.now()
+        elif isinstance(data["date"], str):
+            data["date"] = datetime.fromisoformat(data["date"].replace("Z", "+00:00"))
+
+        # 💡 MAPEO CLARO (ESTO ES LA CLAVE)
+        description = data.get("description")
+        notes = data.get("notes")
+
+        db_transaction = models.Transaction(
+            type=data["type"],
+            amount=data["amount"],
+            date=data["date"],
+            category_id=data["category_id"],
+            is_paid=data.get("is_paid", True),
+            frequency=data.get("frequency", "variable"),
+            description=description,
+            notes=notes,
+            user_id=USER_ID_MOCK
+        )
+
         db.add(db_transaction)
         db.commit()
         db.refresh(db_transaction)
         return db_transaction
-        
+
     except HTTPException:
         db.rollback()
         raise

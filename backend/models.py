@@ -39,6 +39,8 @@ class Category(Base):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     is_predefined = Column(Boolean, default=False)
     
+    icon = Column(String, nullable=True)
+    
     user = relationship("User", back_populates="categories", foreign_keys=[user_id])
     transactions = relationship("Transaction", back_populates="category")
     
