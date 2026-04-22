@@ -7,6 +7,8 @@
 	import { onMount } from 'svelte';
 	import DatePicker from '$lib/components/ui/DatePicker.svelte';
 	import PaidToggle from '$lib/components/ui/PaidToggle.svelte';
+	import { transactionsStore } from '$lib/stores/transactions.svelte';
+	import NoteInput from '$lib/components/ui/NoteInput.svelte';
 
 	type TransactionType = 'expense' | 'income' | 'invest';
 
@@ -16,46 +18,47 @@
 		{ value: 'invest', label: 'Inversión' }
 	];
 
+	// --- ESTADO ---
 	let amount = $state('');
 	let description = $state('');
 	let type = $state<TransactionType>('expense');
 	let isPaid = $state(true);
 	let selectedCategoryId = $state<number | null>(null);
+	let date = $state(new Date().toISOString().split('T'));
+	let loading = $state(false);
 
-	let date = $state(new Date().toISOString().split('T')[0]);
-
+	// --- CARGA INICIAL ---
 	onMount(async () => {
 		if (categoriesStore.all.length === 0) {
 			await categoriesStore.refresh(PUBLIC_KAIRA_PIN);
 		}
 	});
 
+	// --- LÓGICA DE ENVÍO ---
 	async function handleSubmit() {
-		// 🔥 NORMALIZACIÓN FIABLE
-		const cleanDescription = description.trim();
-
-		const baseUrl = PUBLIC_API_URL.replace(/\/$/, '');
-		const finalUrl = `${baseUrl}/transactions/`;
-
 		if (!amount || !selectedCategoryId) {
-			alert('Faltan datos');
+			alert('Por favor, introduce un importe y selecciona una categoría.');
 			return;
 		}
+
+		loading = true;
+		const cleanDescription = description.trim();
+		const baseUrl = PUBLIC_API_URL.replace(/\/$/, '');
 
 		const payload = {
 			type,
 			amount: parseFloat(amount),
 			date: new Date(date).toISOString(),
-			description: description.trim() || 'Nueva transacción',
-			notes: description.trim() || null,
+			description: cleanDescription || 'Nueva transacción',
+			notes: cleanDescription || null,
 			category_id: selectedCategoryId,
 			is_paid: isPaid,
 			frequency: 'variable',
-			user_id: 1
+			user_id: 1 // Ajustar según tu sistema de auth
 		};
 
 		try {
-			const res = await fetch(finalUrl, {
+			const res = await fetch(`${baseUrl}/transactions/`, {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -65,43 +68,55 @@
 			});
 
 			if (res.ok) {
+				// Resetear formulario
 				amount = '';
 				description = '';
+				// Opcional: recargar el histórico de transacciones
+				transactionsStore.fetch();
+				alert('¡Movimiento guardado!');
+			} else {
+				const errorData = await res.json();
+				console.error('Error del servidor:', errorData);
 			}
 		} catch (error) {
-			console.error(error);
+			console.error('Error de red:', error);
+		} finally {
+			loading = false;
 		}
 	}
 </script>
 
-<div class="mx-auto flex w-full max-w-xl flex-col gap-6 px-2 pt-10">
+<div class="mx-auto flex w-full max-w-xl flex-col gap-8  pt-10 pb-20">
 	<header>
-		<h1 class="h1-kaira">Nuevo Movimiento</h1>
+		<h1 class="h1-kaira text-3xl font-black">Nuevo Movimiento</h1>
+		<p class="text-[10px] font-bold tracking-widest uppercase opacity-30">
+			Añade un registro a tu cartera
+		</p>
 	</header>
 
 	<SegmentedControl options={typeOptions} bind:selected={type} />
 
 	<DatePicker bind:value={date} label="Fecha del movimiento" />
 
-	<AmountInput bind:value={amount} {type} />
+	<div class="py-4">
+		<AmountInput bind:value={amount} {type} />
+	</div>
 
-	<PaidToggle bind:value={isPaid} />
+		<PaidToggle bind:value={isPaid} />
 
 	<CategorySelector {type} bind:selectedCategoryId />
 
-	<div class="space-y-6">
-		<input
-			type="text"
-			placeholder="Nota..."
-			bind:value={description}
-			class="w-full rounded-2xl border border-white/5 bg-white/5 p-5 text-sm outline-none focus:border-primary/40"
-		/>
+	<div class="space-y-4">
+		<div class="group relative">
+			<NoteInput bind:value={description} label="Descripción" placeholder="Añadir nota..." />
+		</div>
 
 		<button
 			onclick={handleSubmit}
-			class="w-full rounded-[24px] bg-primary py-5 text-xs font-black tracking-[0.3em] text-white uppercase shadow-2xl transition-all active:scale-95"
+			disabled={loading}
+			class="w-full rounded-[24px] bg-primary py-5 text-xs font-black tracking-[0.3em] text-white uppercase shadow-2xl transition-all active:scale-95 disabled:opacity-50"
 		>
-			Confirmar {typeOptions.find((o) => o.value === type)?.label}
+			{loading ? 'Procesando...' : `Confirmar ${typeOptions.find((o) => o.value === type)?.label}`}
 		</button>
 	</div>
 </div>

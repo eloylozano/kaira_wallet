@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
@@ -21,18 +21,14 @@ def create_transaction(transaction: schemas.TransactionCreate, db: Session = Dep
 
         data = transaction.model_dump()
 
-        # ❌ limpiar campos que no van al modelo
+        # Limpiar campos que no pertenecen al modelo de BD
         data.pop("currency", None)
 
-        # ⏱ fecha
+        # Procesar fecha
         if data.get("date") is None:
             data["date"] = datetime.now()
         elif isinstance(data["date"], str):
             data["date"] = datetime.fromisoformat(data["date"].replace("Z", "+00:00"))
-
-        # 💡 MAPEO CLARO (ESTO ES LA CLAVE)
-        description = data.get("description")
-        notes = data.get("notes")
 
         db_transaction = models.Transaction(
             type=data["type"],
@@ -41,8 +37,8 @@ def create_transaction(transaction: schemas.TransactionCreate, db: Session = Dep
             category_id=data["category_id"],
             is_paid=data.get("is_paid", True),
             frequency=data.get("frequency", "variable"),
-            description=description,
-            notes=notes,
+            description=data.get("description") or "Nueva transacción",
+            notes=data.get("notes") or data.get("description"),
             user_id=USER_ID_MOCK
         )
 
@@ -63,7 +59,10 @@ def create_transaction(transaction: schemas.TransactionCreate, db: Session = Dep
 def get_transactions(
     frequency: Optional[schemas.FrequencyType] = None,
     transaction_type: Optional[schemas.TransactionType] = None,
-    is_paid: Optional[bool] = None,  # <-- Nuevo filtro para pagados/pendientes
+    is_paid: Optional[bool] = None,
+    # ✅ PAGINACIÓN CORRECTA
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db)
 ):
     try:
@@ -71,12 +70,96 @@ def get_transactions(
         
         if frequency:
             query = query.filter(models.Transaction.frequency == frequency)
+        
         if transaction_type:
             query = query.filter(models.Transaction.type == transaction_type)
+        
         if is_paid is not None:
             query = query.filter(models.Transaction.is_paid == is_paid)
             
-        return query.order_by(models.Transaction.date.desc()).all()
+        # Aplicamos orden, salto y límite
+        results = (
+            query
+            .order_by(models.Transaction.date.desc())
+            .offset(skip)
+            .limit(limit)
+            .all()
+        )
+        return results
     except Exception as e:
         print(f"❌ ERROR al obtener transacciones: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/count")
+def count_transactions(
+    transaction_type: Optional[schemas.TransactionType] = None,
+    is_paid: Optional[bool] = None,
+    db: Session = Depends(get_db)
+):
+    try:
+        query = db.query(models.Transaction).filter(models.Transaction.user_id == USER_ID_MOCK)
+
+        if transaction_type:
+            query = query.filter(models.Transaction.type == transaction_type)
+
+        if is_paid is not None:
+            query = query.filter(models.Transaction.is_paid == is_paid)
+
+        return {"total": query.count()}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    # --- OBTENER UNA SOLA TRANSACCIÓN ---
+@router.get("/{transaction_id}", response_model=schemas.TransactionWithCategory)
+def get_transaction(transaction_id: int, db: Session = Depends(get_db)):
+    db_transaction = db.query(models.Transaction).filter(
+        models.Transaction.id == transaction_id,
+        models.Transaction.user_id == USER_ID_MOCK
+    ).first()
+    
+    if not db_transaction:
+        raise HTTPException(status_code=404, detail="Transacción no encontrada")
+    
+    return db_transaction
+
+@router.put("/{transaction_id}", response_model=schemas.Transaction)
+def update_transaction(
+    transaction_id: int, 
+    transaction_update: schemas.TransactionCreate, # O un esquema Update si prefieres campos opcionales
+    db: Session = Depends(get_db)
+):
+    db_query = db.query(models.Transaction).filter(
+        models.Transaction.id == transaction_id,
+        models.Transaction.user_id == USER_ID_MOCK
+    )
+    
+    db_transaction = db_query.first()
+    
+    if not db_transaction:
+        raise HTTPException(status_code=404, detail="Transacción no encontrada")
+    
+    update_data = transaction_update.model_dump()
+    
+    update_data.pop("currency", None)
+    # Manejo de la fecha si viene como string
+    if isinstance(update_data.get("date"), str):
+        update_data["date"] = datetime.fromisoformat(update_data["date"].replace("Z", "+00:00"))
+
+    db_query.update(update_data, synchronize_session=False)
+    db.commit()
+    db.refresh(db_transaction)
+    return db_transaction
+
+# --- ELIMINAR TRANSACCIÓN ---
+@router.delete("/{transaction_id}")
+def delete_transaction(transaction_id: int, db: Session = Depends(get_db)):
+    db_transaction = db.query(models.Transaction).filter(
+        models.Transaction.id == transaction_id,
+        models.Transaction.user_id == USER_ID_MOCK
+    ).first()
+
+    if not db_transaction:
+        raise HTTPException(status_code=404, detail="No existe la transacción")
+
+    db.delete(db_transaction)
+    db.commit()
+    return {"message": "Eliminada correctamente"}

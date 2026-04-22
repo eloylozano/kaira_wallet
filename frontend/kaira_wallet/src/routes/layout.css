@@ -2,139 +2,162 @@
 @plugin '@tailwindcss/forms';
 @plugin '@tailwindcss/typography';
 
-/* --- VARIABLES GLOBALES Y TEMA OSCURO (Default) --- */
+/* =========================
+   DARK THEME (DEFAULT)
+========================= */
 :root {
-    /* Paleta Emerald Tech */
+
+    /* Brand */
     --primary: #10b981;
-    --primary-glow: #10b98166;
+    --primary-glow: rgba(16, 185, 129, 0.35);
+
     --secondary: #34d399;
     --accent: #22d3ee;
-    
-    /* Estados */
+
+    /* States */
     --success: #10b981;
     --danger: #f43f5e;
     --warning: #fbbf24;
 
-    /* Fondo Dark OLED */
+    /* Background */
     --bg-gradient: radial-gradient(circle at 50% 0%, #062d24 0%, #020617 100%);
-    
-    /* Glassmorphism Dark */
+
+    /* Surfaces */
+    --surface-1: rgba(255, 255, 255, 0.04);
+    --surface-2: rgba(255, 255, 255, 0.08);
+    --surface-3: rgba(255, 255, 255, 0.12);
+
     --glass-bg: rgba(255, 255, 255, 0.04);
     --glass-border: rgba(255, 255, 255, 0.08);
     --glass-blur: 16px;
-    
-    /* Texto */
+
+    /* Text */
     --text-main: #ffffff;
-    --text-muted: #94a3b8;
+    --text-muted: rgba(255,255,255,0.6);
+    --text-soft: rgba(255,255,255,0.3);
+
+    /* Inputs */
+    --input-bg: rgba(255, 255, 255, 0.05);
+    --input-border: rgba(255, 255, 255, 0.08);
+
+    /* Chips */
+    --chip-bg: var(--surface-1);
+    --chip-border: var(--glass-border);
+    --chip-text: var(--text-muted);
+
+    --chip-active-bg: var(--primary);
+    --chip-active-text: #ffffff;
+
+    /* Nav */
     --nav-bg: rgba(7, 10, 15, 0.85);
 
-    /* Safe Areas */
+    /* Safe areas */
     --safe-area-top: env(safe-area-inset-top, 0px);
     --safe-area-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-/* --- TEMA CLARO (Sobreescritura) --- */
+
+/* =========================
+   LIGHT THEME
+========================= */
 [data-theme="light"] {
-    --bg-gradient: radial-gradient(circle at 50% 0%, #dcfce7 0%, #f8fafc 70%);
-    
+
     --primary: #059669;
-    --primary-glow: rgba(5, 150, 105, 0.2);
-    
-    --text-main: #0f172a; /* Azul muy oscuro, casi negro */
-    --text-muted: #64748b;
-    
-    --glass-bg: rgba(255, 255, 255, 0.4); /* Más claro para modo luz */
+    --primary-glow: rgba(5, 150, 105, 0.25);
+
+    --bg-gradient: radial-gradient(circle at 50% 0%, #dcfce7 0%, #f8fafc 70%);
+
+    --surface-1: rgba(15, 23, 42, 0.03);
+    --surface-2: rgba(15, 23, 42, 0.06);
+    --surface-3: rgba(15, 23, 42, 0.1);
+
+    --glass-bg: rgba(255, 255, 255, 0.7);
     --glass-border: rgba(0, 0, 0, 0.08);
+
+    --text-main: #0f172a;
+    --text-muted: rgba(15,23,42,0.6);
+    --text-soft: rgba(15,23,42,0.35);
+
+    --input-bg: rgba(255,255,255,0.9);
+    --input-border: rgba(0,0,0,0.08);
+
     --nav-bg: rgba(255, 255, 255, 0.8);
+
+    --chip-active-bg: var(--primary);
+    --chip-active-text: #ffffff;
 }
 
-/* --- CONFIGURACIÓN DE TEMA TAILWIND --- */
+
+/* =========================
+   TAILWIND TOKENS
+========================= */
 @theme {
     --color-primary: var(--primary);
     --color-main: var(--text-main);
     --color-muted: var(--text-muted);
 }
 
-/* --- OPTIMIZACIÓN DE ESTILOS BASE --- */
+
+/* =========================
+   BASE
+========================= */
 * {
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
 }
 
-.h1-kaira {
-  font-size: 1.875rem; /* text-3xl */
-  font-weight: 900;    /* font-black */
-  font-style: italic;
-  text-transform: uppercase;
-  letter-spacing: -0.025em; /* tracking-tight */
-  line-height: 1.2;
-  
-  /* Color dinámico basado en tu variable de texto principal */
-  color: var(--text-main);
-  
-  /* Un toque de degradado sutil para que no sea un color plano */
-  background: linear-gradient(to bottom, var(--text-main) 70%, rgba(255,255,255,0.5));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  
-  /* Optimización para pantallas Retina de iPhone */
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* Variante con brillo si quieres destacar algo mucho más */
-.h1-glow {
-  text-shadow: 0 0 20px var(--primary-glow);
-}
-
 html {
-    /* Eliminamos el rebote para que la app parezca una sola pieza */
     overscroll-behavior: none;
-    background-color: var(--bg-color);
 }
 
+/* FIX importante: fondo fijo correcto */
 body {
     margin: 0;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    background: var(--bg-gradient);
-    background-color: var(--bg-color);
-    background-attachment: fixed;
     color: var(--text-main);
     min-height: 100vh;
-    /* Sin padding top aquí para que el fondo suba hasta el cristal superior */
-    padding-bottom: var(--safe-area-bottom);
+}
+
+/* Fondo estable (evita cambios en scroll móvil) */
+body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: var(--bg-gradient);
+    z-index: -1;
+}
+
+
+/* =========================
+   TYPO
+========================= */
+.h1-kaira {
+    font-size: 1.875rem;
+    font-weight: 900;
+    font-style: italic;
+    text-transform: uppercase;
+    letter-spacing: -0.025em;
+    line-height: 1.2;
+
+    color: var(--text-main);
+
+    background: linear-gradient(
+        to bottom,
+        var(--text-main) 70%,
+        rgba(255,255,255,0.4)
+    );
+
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+
     -webkit-font-smoothing: antialiased;
 }
 
-/* --- REGLA GENERAL DE TÍTULOS (Header) --- */
-.ios-header {
-    /* El título sube al área segura pero con un margen mínimo para no tocar el reloj */
-    padding-top: calc(var(--safe-area-top) + 0.5rem); 
-    padding-left: 0.75rem; /* Padding horizontal reducido */
-    padding-right: 0.75rem;
-    margin-bottom: 1rem;
-}
 
-.ios-header h1 {
-    font-size: 1.875rem; /* 3xl - un poco más compacto */
-    letter-spacing: -0.05em; /* Letras más juntas para ganar espacio */
-    line-height: 1.1;
-}
-
-/* --- AJUSTE TAB BAR (Nav Inferior) --- */
-.glass-nav {
-    background: var(--nav-bg);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    border-top: 1px solid var(--glass-border);
-    
-    /* Padding inferior inteligente para la curva del iPhone */
-    padding-bottom: calc(var(--safe-area-bottom) + 8px);
-    padding-top: 10px;
-}
-
-/* --- UTILIDADES DE CRISTAL --- */
+/* =========================
+   GLASS / UI
+========================= */
 .glass-panel {
     background: var(--glass-bg);
     backdrop-filter: blur(var(--glass-blur));
@@ -145,3 +168,55 @@ body {
 .glow-primary {
     box-shadow: 0 0 15px var(--primary-glow);
 }
+
+.glass-nav {
+    background: var(--nav-bg);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-top: 1px solid var(--glass-border);
+}
+/* =========================
+   COMPONENT TOKENS
+========================= */
+.kaira-panel {
+    background: var(--surface-1);
+    border: 1px solid var(--glass-border);
+    color: var(--text-main);
+}
+
+.kaira-input {
+    background: var(--input-bg);
+    border: 1px solid var(--input-border);
+    color: var(--text-main);
+}
+
+.kaira-input::placeholder {
+    color: var(--text-soft);
+}
+
+.kaira-input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: none;
+}
+
+
+/* CHIPS (FILTROS) */
+.kaira-chip {
+    background: var(--chip-bg);
+    border: 1px solid var(--chip-border);
+    color: var(--chip-text);
+}
+
+.kaira-chip-active {
+    background: var(--chip-active-bg);
+    color: var(--chip-active-text);
+    border: 1px solid transparent;
+    box-shadow: 0 0 0 1px var(--primary-glow);
+    transform: translateY(-1px);
+}
+
+
+/* TEXT HELPERS */
+.kaira-muted { color: var(--text-muted); }
+.kaira-soft { color: var(--text-soft); }

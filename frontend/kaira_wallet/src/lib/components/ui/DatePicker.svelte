@@ -100,15 +100,24 @@
 </script>
 
 <div class="space-y-3">
-	<p class="px-2 text-[10px] font-black tracking-[0.2em] uppercase opacity-40">
+
+	<p class="kaira-soft px-2 text-[10px] font-black uppercase tracking-[0.2em]">
 		{label}
 	</p>
 
 	<div
-		class="flex items-center rounded-2xl border border-white/6 bg-white/5 px-4 py-3 transition-all focus-within:border-primary/40"
+		class="
+			kaira-panel
+			flex items-center justify-between
+			rounded-2xl px-3 sm:px-4 py-2 sm:py-3
+			transition-all
+			focus-within:border-primary/40
+		"
 	>
-		<!-- bloque fecha centrado -->
-		<div class="flex flex-1 items-center justify-center gap-3">
+
+		<!-- FECHA -->
+		<div class="flex flex-1 items-center justify-center gap-2 sm:gap-3">
+
 			<input
 				bind:this={dRef}
 				bind:value={day}
@@ -119,10 +128,16 @@
 				oninput={(e) => autoNext(e, 2, mRef)}
 				onkeydown={(e) => backNav(e, dRef)}
 				onblur={() => pad('day')}
-				class="w-10 appearance-none border-0 bg-transparent p-0 text-center font-extrabold ring-0 outline-none placeholder:text-white/20 md:text-xl"
+				class="
+					w-15 sm:w-15 lg:w-15
+					bg-transparent text-center font-black
+					text-xs sm:text-sm lg:text-base
+					text-main placeholder:text-muted
+					outline-none border-0 ring-0
+				"
 			/>
 
-			<span class="text-sm font-black opacity-20">-</span>
+			<span class="text-muted font-black text-sm sm:text-base">-</span>
 
 			<input
 				bind:this={mRef}
@@ -134,10 +149,16 @@
 				oninput={(e) => autoNext(e, 2, yRef)}
 				onkeydown={(e) => backNav(e, mRef, dRef)}
 				onblur={() => pad('month')}
-				class="w-10 appearance-none border-0 bg-transparent p-0 text-center font-extrabold ring-0 outline-none placeholder:text-white/20 md:text-xl"
+				class="
+					w-15 sm:w-15 lg:w-15
+					bg-transparent text-center font-black
+					text-xs sm:text-sm lg:text-base
+					text-main placeholder:text-muted
+					outline-none border-0 ring-0
+				"
 			/>
 
-			<span class="text-sm font-black opacity-20">-</span>
+			<span class="text-muted font-black text-sm sm:text-base">-</span>
 
 			<input
 				bind:this={yRef}
@@ -148,15 +169,30 @@
 				placeholder="AAAA"
 				oninput={(e) => autoNext(e, 4)}
 				onkeydown={(e) => backNav(e, yRef, mRef)}
-				class="w-16 appearance-none border-0 bg-transparent p-0 text-center font-extrabold ring-0 outline-none placeholder:text-white/20 md:text-xl"
+				class="
+					w-14 sm:w-20 lg:w-25
+					bg-transparent text-center font-black
+					text-xs sm:text-sm lg:text-xl
+					text-main placeholder:text-muted
+					outline-none border-0 ring-0
+				"
 			/>
+
 		</div>
 
-		<!-- botón calendario -->
+		<!-- CALENDARIO -->
 		<button
 			type="button"
 			onclick={openCalendar}
-			class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/6 text-lg transition-all hover:bg-white/10 active:scale-95"
+			class="
+				flex h-9 w-9 sm:h-10 sm:w-10 lg:h-11 lg:w-11
+				items-center justify-center
+				rounded-xl
+				bg-primary/10 text-primary
+				transition-all
+				active:scale-95
+				hover:bg-primary/20
+			"
 		>
 			📅
 		</button>
@@ -170,6 +206,9 @@
 	</div>
 
 	{#if (day || month || year) && !validDate()}
-		<p class="px-2 text-xs opacity-60">Fecha inválida</p>
+		<p class="kaira-soft px-2 text-xs">
+			Fecha inválida
+		</p>
 	{/if}
+
 </div>

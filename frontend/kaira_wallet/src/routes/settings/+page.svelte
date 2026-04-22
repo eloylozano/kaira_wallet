@@ -93,7 +93,7 @@
     ];
 </script>
 
-<div class="mx-auto flex w-full max-w-xl flex-col gap-6 px-2 ">
+<div class="mx-auto flex w-full max-w-xl flex-col gap-6 ">
     <header class="ios-header">
         <h1 class="text-4xl font-black tracking-tight uppercase italic">
             Ajustes
