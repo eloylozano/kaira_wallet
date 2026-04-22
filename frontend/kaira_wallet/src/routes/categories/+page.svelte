@@ -22,7 +22,7 @@
 	}
 </script>
 
-<div class="mx-auto max-w-xl space-y-6 p-4">
+<div class="mx-auto max-w-xl space-y-6">
 
 	<header class="ios-header">
 		<h1 class="text-3xl font-black uppercase italic">Categorías</h1>

@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
+from sqlalchemy import asc, desc
 from typing import List, Optional
 from datetime import datetime
 import models, schemas
@@ -55,41 +56,46 @@ def create_transaction(transaction: schemas.TransactionCreate, db: Session = Dep
         print(f"❌ ERROR al crear transacción: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @router.get("/", response_model=List[schemas.TransactionWithCategory])
 def get_transactions(
     frequency: Optional[schemas.FrequencyType] = None,
     transaction_type: Optional[schemas.TransactionType] = None,
     is_paid: Optional[bool] = None,
-    # ✅ PAGINACIÓN CORRECTA
+    sort: Optional[str] = "desc",
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
     db: Session = Depends(get_db)
 ):
     try:
-        query = db.query(models.Transaction).filter(models.Transaction.user_id == USER_ID_MOCK)
-        
+        query = db.query(models.Transaction).filter(
+            models.Transaction.user_id == USER_ID_MOCK
+        )
+
         if frequency:
             query = query.filter(models.Transaction.frequency == frequency)
-        
+
         if transaction_type:
             query = query.filter(models.Transaction.type == transaction_type)
-        
+
         if is_paid is not None:
             query = query.filter(models.Transaction.is_paid == is_paid)
-            
-        # Aplicamos orden, salto y límite
+
+        order = desc(models.Transaction.date) if sort == "desc" else asc(models.Transaction.date)
+
         results = (
             query
-            .order_by(models.Transaction.date.desc())
+            .order_by(order)
             .offset(skip)
             .limit(limit)
             .all()
         )
+
         return results
+
     except Exception as e:
         print(f"❌ ERROR al obtener transacciones: {e}")
         raise HTTPException(status_code=500, detail=str(e))
-
 @router.get("/count")
 def count_transactions(
     transaction_type: Optional[schemas.TransactionType] = None,

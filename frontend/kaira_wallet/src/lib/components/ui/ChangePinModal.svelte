@@ -1,19 +1,24 @@
 <script lang="ts">
 	import { haptics } from '$lib/utils/haptic';
 	import { fade, scale } from 'svelte/transition';
+
 	let { isOpen, onTouchOutside, onComplete } = $props();
 
-	let step = $state(1); // 1: PIN actual, 2: Nuevo PIN
+	let step = $state(1);
 	let pin = $state('');
 	let oldPinVerified = $state('');
 	let error = $state(false);
 
 	const savedPin =
-		typeof localStorage !== 'undefined' ? localStorage.getItem('user_pin') || '1234' : '1234';
+		typeof localStorage !== 'undefined'
+			? localStorage.getItem('user_pin') || '1234'
+			: '1234';
 
 	function addNumber(n: string) {
 		haptics.light();
+
 		if (pin.length < 4) pin += n;
+
 		if (pin.length === 4) {
 			setTimeout(validate, 200);
 		}
@@ -42,11 +47,9 @@
 
 	function handleBack() {
 		if (step === 2) {
-			// Volver a verificar el PIN antiguo
 			step = 1;
 			pin = '';
 		} else {
-			// Cerrar el modal directamente
 			resetAndClose();
 		}
 	}

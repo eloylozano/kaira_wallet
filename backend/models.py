@@ -23,27 +23,38 @@ class User(Base):
     
     categories = relationship("Category", back_populates="user", foreign_keys="Category.user_id")
     transactions = relationship("Transaction", back_populates="user")
-
+    
 class Category(Base):
     __tablename__ = "categories"
+
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     description = Column(String, nullable=True)
-    
-    # 2. Aquí ya lo tenías bien: SQLEnum
+
     transaction_type = Column(SQLEnum(TransactionType), nullable=False)
-    
+
     parent_id = Column(Integer, ForeignKey("categories.id"), nullable=True)
-    parent = relationship("Category", remote_side=[id], backref="subcategories")
-    
+
+    parent = relationship(
+        "Category",
+        remote_side=[id],
+        back_populates="subcategories"
+    )
+
+    subcategories = relationship(
+        "Category",
+        back_populates="parent",
+        cascade="all, delete-orphan",
+        lazy="select"
+    )
+
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     is_predefined = Column(Boolean, default=False)
-    
     icon = Column(String, nullable=True)
-    
+
     user = relationship("User", back_populates="categories", foreign_keys=[user_id])
     transactions = relationship("Transaction", back_populates="category")
-    
+
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 class Transaction(Base):

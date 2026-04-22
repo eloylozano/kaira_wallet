@@ -52,7 +52,7 @@ class Category(CategoryBase):
         from_attributes = True
 
 class CategoryWithSubcategories(Category):
-    subcategories: List['Category'] = []
+    subcategories: List['Category'] = Field(default_factory=list)
     
     class Config:
         from_attributes = True

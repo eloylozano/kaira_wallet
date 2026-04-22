@@ -20,16 +20,24 @@ USER_ID_MOCK = 1  # ⚠️ luego cámbialo por auth real
 @router.get("/", response_model=List[schemas.CategoryWithSubcategories])
 def get_categories(db: Session = Depends(get_db)):
     try:
-        return (
+        categories = (
             db.query(models.Category)
             .options(joinedload(models.Category.subcategories))
             .filter(models.Category.user_id == USER_ID_MOCK)
             .filter(models.Category.parent_id == None)
             .all()
         )
+
+        for cat in categories:
+            cat.subcategories = [
+                sub for sub in cat.subcategories
+                if sub.user_id == USER_ID_MOCK
+            ]
+
+        return categories
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
 
 # =========================================================
 # 📌 GET PREDEFINED (opcional)
@@ -56,6 +64,16 @@ def get_predefined_categories(
 @router.post("/", response_model=schemas.Category)
 def create_category(category: schemas.CategoryCreate, db: Session = Depends(get_db)):
     try:
+        # validar parent
+        if category.parent_id is not None:
+            parent = db.query(models.Category).filter(
+                models.Category.id == category.parent_id,
+                models.Category.user_id == USER_ID_MOCK
+            ).first()
+
+            if not parent:
+                raise HTTPException(status_code=404, detail="Parent category not found")
+
         db_category = models.Category(
             **category.model_dump(),
             user_id=USER_ID_MOCK,
@@ -71,7 +89,6 @@ def create_category(category: schemas.CategoryCreate, db: Session = Depends(get_
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
-
 
 # =========================================================
 # 📌 UPDATE CATEGORY
@@ -91,6 +108,23 @@ def update_category(
         if not db_category:
             raise HTTPException(status_code=404, detail="Categoría no encontrada")
 
+        # 🚫 evitar self parent
+        if category_update.parent_id == category_id:
+            raise HTTPException(
+                status_code=400,
+                detail="Una categoría no puede ser su propio padre"
+            )
+
+        # 🚫 validar parent existe (IMPORTANTE también en update)
+        if category_update.parent_id is not None:
+            parent = db.query(models.Category).filter(
+                models.Category.id == category_update.parent_id,
+                models.Category.user_id == USER_ID_MOCK
+            ).first()
+
+            if not parent:
+                raise HTTPException(status_code=404, detail="Parent category not found")
+
         for key, value in category_update.model_dump().items():
             setattr(db_category, key, value)
 
@@ -102,7 +136,6 @@ def update_category(
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
-
 
 # =========================================================
 # 📌 DELETE CATEGORY

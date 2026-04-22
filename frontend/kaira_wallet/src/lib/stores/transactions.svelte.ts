@@ -5,7 +5,7 @@ let _total = $state(0); // <--- Nuevo estado para el total
 
 export const transactionsStore = {
     get all() { return _transactions; },
-    get total() { return _total; }, 
+    get total() { return _total; },
     set(data: any[]) {
         _transactions = [...data];
     },
@@ -15,13 +15,14 @@ export const transactionsStore = {
         is_paid?: boolean;
         skip?: number;
         limit?: number;
+        sort?: 'asc' | 'desc';
     }) {
         const baseUrl = PUBLIC_API_URL.replace(/\/$/, '');
         const query = new URLSearchParams();
 
         if (params?.transaction_type) query.append('transaction_type', params.transaction_type);
         if (params?.is_paid !== undefined) query.append('is_paid', String(params.is_paid));
-        
+        if (params?.sort) query.append('sort', params.sort);
         // Clonamos los params de filtro para el contador (el contador no usa skip/limit)
         const countQuery = new URLSearchParams(query);
 

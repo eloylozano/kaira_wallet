@@ -2,7 +2,7 @@
 	import * as Icons from 'lucide-svelte';
 	import { deleteCategory } from '$lib/api/categories';
 	import { categoriesStore } from '$lib/stores/categories.svelte';
-	import { transactionTypeLabel, transactionTypeBadge } from '$lib/utils/transactionType';
+	import { transactionTypeLabel } from '$lib/utils/transactionType';
 
 	let { cat, onEdit } = $props();
 
@@ -18,7 +18,13 @@
 		return Icons[key] || Icons.Circle;
 	}
 
-	const style = transactionTypeBadge[cat.transaction_type] ?? transactionTypeBadge.expense;
+	const typeStyle = {
+		expense: { color: '#ef4444', bg: 'rgba(239,68,68,0.12)' },
+		income: { color: '#22c55e', bg: 'rgba(34,197,94,0.12)' },
+		invest: { color: '#3b82f6', bg: 'rgba(59,130,246,0.12)' }
+	};
+
+	const style = typeStyle[cat.transaction_type] ?? typeStyle.expense;
 
 	async function remove() {
 		const ok = confirm('¿Eliminar categoría?');
@@ -49,9 +55,7 @@
 
 			<div>
 				<p class="font-bold">{cat.name}</p>
-
-				<!-- 👇 traducido -->
-				<p class="text-xs opacity-50">
+				<p class="text-xs capitalize opacity-50">
 					{transactionTypeLabel[cat.transaction_type] ?? cat.transaction_type}
 				</p>
 			</div>

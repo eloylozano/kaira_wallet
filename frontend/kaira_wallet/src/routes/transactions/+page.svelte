@@ -35,7 +35,8 @@
 			transaction_type: type || undefined,
 			is_paid: isPaid === '' ? undefined : isPaid,
 			skip,
-			limit
+			limit,
+			sort: sort 
 		});
 	});
 

@@ -1,31 +1,34 @@
 <script lang="ts">
+	import { categoriesStore } from '$lib/stores/categories.svelte';
 	import IconPicker from './IconPicker.svelte';
 	import SegmentedControl from '$lib/components/ui/SegmentedControl.svelte';
 	import { createCategory, updateCategory } from '$lib/api/categories';
-	import { categoriesStore } from '$lib/stores/categories.svelte';
+	import CategoryParentSelector from './CategoryParentSelector.svelte';
 
 	let { editing = null, onClose } = $props();
 
 	let name = $state(editing?.name ?? '');
 	let icon = $state(editing?.icon ?? 'circle');
-	let type = $state<'expense' | 'income' | 'invest'>(editing?.transaction_type ?? 'expense');
+	let type = $state(editing?.transaction_type ?? 'expense');
+
+	// 👇 NUEVO: parent
+	let parentId = $state<number | null>(editing?.parent_id ?? null);
 
 	const types = [
-		{ value: 'expense', label: 'Gasto', color: '#ef4444' }, // rojo
-		{ value: 'income', label: 'Ingreso', color: '#22c55e' }, // verde
-		{ value: 'invest', label: 'Inversión', color: '#3b82f6' } // azul
+		{ value: 'expense', label: 'Gastos', color: '#f43f5e' },
+		{ value: 'income', label: 'Ingresos', color: '#10b981' },
+		{ value: 'invest', label: 'Inversión', color: '#3b82f6' }
 	];
-	function reset() {
-		name = '';
-		icon = 'circle';
-		type = 'expense';
-	}
+
+	// SOLO categorías padre (evitas anidar infinito)
+	const parents = $derived(categoriesStore.all.filter((c) => !c.parent_id));
 
 	async function save() {
 		const payload = {
 			name,
 			icon,
-			transaction_type: type
+			transaction_type: type,
+			parent_id: parentId
 		};
 
 		if (editing) {
@@ -35,20 +38,14 @@
 		}
 
 		await categoriesStore.refresh();
-
-		reset();
 		onClose();
 	}
-
 	function cancel() {
-		reset();
 		onClose();
 	}
 </script>
 
-<!-- BACKDROP -->
 <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-	<!-- SHEET -->
 	<div
 		class="
 			
@@ -62,7 +59,7 @@
 			backdrop-saturate-150
 		"
 	>
-		<h2 class="mb-5 text-xl font-bold tracking-tight">
+		<h2 class="mb-5 text-center text-xl font-bold tracking-tight">
 			{editing ? 'Editar categoría' : 'Nueva categoría'}
 		</h2>
 
@@ -101,6 +98,13 @@
 					{ value: 'invest', label: 'Inversión', color: '#3b82f6' }
 				]}
 			/>
+		</div>
+
+		<!-- PARENT -->
+		<div class="mb-5">
+			<p class="mb-2 text-[10px] font-bold uppercase opacity-60">Categoría padre (opcional)</p>
+
+			<CategoryParentSelector bind:selected={parentId} />
 		</div>
 
 		<!-- ICON -->

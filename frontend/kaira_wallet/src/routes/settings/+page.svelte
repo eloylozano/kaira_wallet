@@ -158,7 +158,7 @@
 	</div>
 </div>
 
-<ChangePinModal isOpen={isPinModalOpen} onComplete={() => (isPinModalOpen = false)} />
+<ChangePinModal isOpen={isPinModalOpen} onComplete={() => (isPinModalOpen = false)} onTouchOutside={() => (isPinModalOpen = false)} />
 
 <ConfirmModal
 	isOpen={isConfirmLockOpen}
