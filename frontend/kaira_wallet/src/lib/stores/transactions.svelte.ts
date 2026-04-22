@@ -8,23 +8,27 @@ export const transactionsStore = {
 	},
 
 	set(data: any[]) {
-		_transactions = [...data]; 
+		_transactions = [...data];
 	},
 
-	async fetch(params?: { type?: string; is_paid?: boolean }) {
+	async fetch(params?: { transaction_type?: string; is_paid?: boolean }) {
 		const baseUrl = PUBLIC_API_URL.replace(/\/$/, '');
-
 		const query = new URLSearchParams();
 
-		if (params?.type) query.append('type', params.type);
-		if (params?.is_paid !== undefined)
+		// 🔥 FIX IMPORTANTE
+		if (params?.transaction_type) {
+			query.append('transaction_type', params.transaction_type);
+		}
+
+		if (params?.is_paid !== undefined) {
 			query.append('is_paid', String(params.is_paid));
+		}
 
 		const url = `${baseUrl}/transactions/?${query.toString()}`;
 
 		const res = await fetch(url, {
 			headers: {
-				'Accept': 'application/json',
+				Accept: 'application/json',
 				'X-Kaira-PIN': PUBLIC_KAIRA_PIN
 			}
 		});
@@ -35,9 +39,6 @@ export const transactionsStore = {
 		}
 
 		const data = await res.json();
-
-		console.log('🔥 transactions recibidas:', data);
-
 		this.set(data);
 	}
 };

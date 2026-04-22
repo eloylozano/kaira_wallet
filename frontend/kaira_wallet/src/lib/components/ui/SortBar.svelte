@@ -1,28 +1,20 @@
 <script lang="ts">
-	let { sort = $bindable<'desc' | 'asc'>() } = $props();
-
-	function btnClass(active: boolean) {
-		return (
-			'flex-1 rounded-xl p-3 text-sm transition-all ' +
-			(active ? 'bg-white/10' : '')
-		);
-	}
+	let { sort = $bindable() } = $props();
 </script>
 
-<div class="flex gap-2 rounded-2xl bg-white/5 p-1">
+<div class="flex rounded-2xl bg-black/20 p-1 border border-white/5">
 	<button
-		type="button"
 		onclick={() => (sort = 'desc')}
-		class={btnClass(sort === 'desc')}
+		class="flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all
+		{sort === 'desc' ? 'bg-white/5 text-primary' : 'text-white/20'}"
 	>
-		Más recientes
+		Recientes
 	</button>
-
 	<button
-		type="button"
 		onclick={() => (sort = 'asc')}
-		class={btnClass(sort === 'asc')}
+		class="flex-1 py-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all
+		{sort === 'asc' ? 'bg-white/5 text-primary' : 'text-white/20'}"
 	>
-		Más antiguos
+		Antiguos
 	</button>
 </div>
