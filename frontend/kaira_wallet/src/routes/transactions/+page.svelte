@@ -79,7 +79,7 @@
 
 	<SearchBar bind:search />
 
-	<div class="space-y-6 rounded-3xl border border-white/[0.05] bg-white/[0.02] p-2">
+	<div class="space-y-3 rounded-3xl border border-white/5 bg-transparent p-2">
 		<FilterBar bind:type bind:isPaid />
 		<SortBar bind:sort />
 	</div>

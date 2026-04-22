@@ -36,8 +36,11 @@ class CategoryBase(BaseModel):
     parent_id: Optional[int] = None
     icon: Optional[str] = None
 
-class CategoryCreate(CategoryBase):
-    pass
+class CategoryCreate(BaseModel):
+    name: str
+    transaction_type: str
+    parent_id: Optional[int] = None
+    icon: Optional[str] = None
 
 class Category(CategoryBase):
     id: int

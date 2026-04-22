@@ -33,8 +33,8 @@
 
     /* Text */
     --text-main: #ffffff;
-    --text-muted: rgba(255,255,255,0.6);
-    --text-soft: rgba(255,255,255,0.3);
+    --text-muted: rgba(255, 255, 255, 0.6);
+    --text-soft: rgba(255, 255, 255, 0.3);
 
     /* Inputs */
     --input-bg: rgba(255, 255, 255, 0.05);
@@ -75,11 +75,11 @@
     --glass-border: rgba(0, 0, 0, 0.08);
 
     --text-main: #0f172a;
-    --text-muted: rgba(15,23,42,0.6);
-    --text-soft: rgba(15,23,42,0.35);
+    --text-muted: rgba(15, 23, 42, 0.6);
+    --text-soft: rgba(15, 23, 42, 0.35);
 
-    --input-bg: rgba(255,255,255,0.9);
-    --input-border: rgba(0,0,0,0.08);
+    --input-bg: rgba(255, 255, 255, 0.9);
+    --input-border: rgba(0, 0, 0, 0.08);
 
     --nav-bg: rgba(255, 255, 255, 0.8);
 
@@ -142,11 +142,9 @@ body::before {
 
     color: var(--text-main);
 
-    background: linear-gradient(
-        to bottom,
-        var(--text-main) 70%,
-        rgba(255,255,255,0.4)
-    );
+    background: linear-gradient(to bottom,
+            var(--text-main) 70%,
+            rgba(255, 255, 255, 0.4));
 
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -175,14 +173,26 @@ body::before {
     -webkit-backdrop-filter: blur(20px);
     border-top: 1px solid var(--glass-border);
 }
+
 /* =========================
    COMPONENT TOKENS
 ========================= */
 .kaira-panel {
-    background: var(--surface-1);
+    background: var(--glass-bg);
     border: 1px solid var(--glass-border);
     color: var(--text-main);
+
+    /* sombra más sutil y consistente */
+    box-shadow:
+        0 6px 18px rgba(0, 0, 0, 0.25);
+
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+
+
 
 .kaira-input {
     background: var(--input-bg);
@@ -218,5 +228,15 @@ body::before {
 
 
 /* TEXT HELPERS */
-.kaira-muted { color: var(--text-muted); }
-.kaira-soft { color: var(--text-soft); }
+.kaira-muted {
+    color: var(--text-muted);
+}
+
+.kaira-soft {
+    color: var(--text-soft);
+}
+
+
+.safe-bottom {
+	padding-bottom: env(safe-area-inset-bottom);
+}

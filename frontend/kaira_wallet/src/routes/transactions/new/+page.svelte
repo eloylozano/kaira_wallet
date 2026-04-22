@@ -11,7 +11,10 @@
 	import NoteInput from '$lib/components/ui/NoteInput.svelte';
 
 	type TransactionType = 'expense' | 'income' | 'invest';
-
+	const paidOptions = [
+		{ value: true, label: 'Pagado' },
+		{ value: false, label: 'Pendiente', color: '#f59e0b' } // Color ámbar para pendientes
+	];
 	const typeOptions = [
 		{ value: 'expense', label: 'Gasto' },
 		{ value: 'income', label: 'Ingreso' },
@@ -86,15 +89,22 @@
 	}
 </script>
 
-<div class="mx-auto flex w-full max-w-xl flex-col gap-8  pt-10 pb-20">
+<div class="mx-auto flex w-full max-w-xl flex-col gap-8 pt-10 pb-20">
 	<header>
 		<h1 class="h1-kaira text-3xl font-black">Nuevo Movimiento</h1>
 		<p class="text-[10px] font-bold tracking-widest uppercase opacity-30">
 			Añade un registro a tu cartera
 		</p>
 	</header>
-
-	<SegmentedControl options={typeOptions} bind:selected={type} />
+    
+	<SegmentedControl
+		bind:selected={type}
+		options={[
+			{ value: 'expense', label: 'Gastos', color: '#f43f5e' },
+			{ value: 'income', label: 'Ingresos', color: '#10b981' },
+			{ value: 'invest', label: 'Inversión', color: '#3b82f6' }
+		]}
+	/>
 
 	<DatePicker bind:value={date} label="Fecha del movimiento" />
 
@@ -102,7 +112,7 @@
 		<AmountInput bind:value={amount} {type} />
 	</div>
 
-		<PaidToggle bind:value={isPaid} />
+	<SegmentedControl options={paidOptions} bind:selected={isPaid} />
 
 	<CategorySelector {type} bind:selectedCategoryId />
 

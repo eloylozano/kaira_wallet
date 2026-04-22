@@ -100,7 +100,14 @@
 	{#if loading}
 		<p class="text-center opacity-50">Cargando...</p>
 	{:else}
-		<SegmentedControl options={typeOptions} bind:selected={type} />
+		<SegmentedControl
+			bind:selected={type}
+			options={[
+				{ value: 'expense', label: 'Gastos', color: '#f43f5e' },
+				{ value: 'income', label: 'Ingresos', color: '#10b981' },
+				{ value: 'invest', label: 'Inversión', color: '#3b82f6' }
+			]}
+		/>
 
 		<DatePicker bind:value={date} />
 
