@@ -1,4 +1,5 @@
 import { writable } from 'svelte/store';
+import { PUBLIC_API_URL, KAIRA_PIN } from '$env/static/public';
 
 // Definimos la interfaz según tus schemas de FastAPI
 export interface Category {
@@ -17,14 +18,24 @@ function createCategoryStore() {
         subscribe,
         fetchCategories: async (userId: number) => {
             try {
-                // Usamos la URL de tu backend
-                const response = await fetch(`http://localhost:8000/categories/?user_id=${userId}`);
+                // Usamos la URL desde la variable de entorno pública
+                const response = await fetch(`${PUBLIC_API_URL}/categories/?user_id=${userId}`, {
+                    method: 'GET',
+                    headers: {
+                        'accept': 'application/json',
+                        // Usamos el PIN desde la variable de entorno pública
+                        'X-Kaira-PIN': KAIRA_PIN 
+                    }
+                });
+
                 if (response.ok) {
                     const data = await response.json();
                     set(data);
+                } else {
+                    console.error("Error en la respuesta del servidor:", response.status);
                 }
             } catch (error) {
-                console.error("Error cargando categorías:", error);
+                console.error("Error de conexión cargando categorías:", error);
             }
         },
         reset: () => set([])

@@ -61,10 +61,13 @@ app.include_router(stats.router)
 def startup_event():
     db = next(get_db())
     try:
+        # 1. Crear usuario inicial si no existe
+        init_default_user(db)
+        # 2. Inicializar categorías predefinidas
         init_predefined_categories(db)
-        print("✅ Categorías inicializadas y API protegida por PIN")
+        print("✅ Usuario y categorías inicializadas - API protegida por PIN")
     except Exception as e:
-        print(f"⚠️ Error: {e}")
+        print(f"⚠️ Error en startup: {e}")
     finally:
         db.close()
 
@@ -74,6 +77,19 @@ def health_check():
     return {"status": "online", "protection": "PIN_ENABLED"}
 
 # 7. Lógica de inicialización de categorías
+def init_default_user(db):
+    """Crear un usuario por defecto si no existe"""
+    existing_user = db.query(models.User).filter(models.User.id == 1).first()
+    if not existing_user:
+        default_user = models.User(
+            id=1,
+            email="user@kaira.local",
+            hashed_password="dummy_password"  # Solo para desarrollo
+        )
+        db.add(default_user)
+        db.commit()
+        print("✅ Usuario por defecto creado (ID: 1)")
+
 def init_predefined_categories(db):
     predefined = [
         ("Transporte", "Gastos de movilidad", models.TransactionType.expense, None),
@@ -101,7 +117,8 @@ def init_predefined_categories(db):
                 description=description,
                 transaction_type=trans_type,
                 parent_id=parent_id,
-                is_predefined=True
+                is_predefined=True,
+                user_id=None  # Categorías predefinidas sin usuario específico
             )
             db.add(category)
     db.commit()

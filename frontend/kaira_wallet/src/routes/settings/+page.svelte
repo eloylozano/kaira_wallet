@@ -1,94 +1,96 @@
 <script lang="ts">
-	import { theme } from '$lib/stores/theme';
-	import GlassCard from '$lib/components/ui/GlassCard.svelte';
-	import GlassToggle from '$lib/components/ui/GlassToggle.svelte';
-	import GlassButton from '$lib/components/ui/GlassButton.svelte';
-	import ChangePinModal from '$lib/components/ui/ChangePinModal.svelte';
-	import ConfirmModal from '$lib/components/ui/ConfirmModal.svelte';
-	import { auth } from '$lib/stores/auth';
+    import { theme } from '$lib/stores/theme';
+    import SegmentedControl from '$lib/components/ui/SegmentedControl.svelte';
+    import GlassCard from '$lib/components/ui/GlassCard.svelte';
+    import GlassToggle from '$lib/components/ui/GlassToggle.svelte';
+    import GlassButton from '$lib/components/ui/GlassButton.svelte';
+    import ChangePinModal from '$lib/components/ui/ChangePinModal.svelte';
+    import ConfirmModal from '$lib/components/ui/ConfirmModal.svelte';
+    import { auth } from '$lib/stores/auth';
 
-	const haptics = {
-		light: () => {
-			if (typeof navigator !== 'undefined' && navigator.vibrate) {
-				navigator.vibrate(10);
-			}
-		}
-	};
+    const haptics = {
+        light: () => {
+            if (typeof navigator !== 'undefined' && navigator.vibrate) {
+                navigator.vibrate(10);
+            }
+        }
+    };
 
-	let useHaptics = $state(true);
-	let isPinModalOpen = $state(false);
-	let isConfirmLockOpen = $state(false);
-	let isConfirmDeleteOpen = $state(false);
+    let useHaptics = $state(true);
+    let isPinModalOpen = $state(false);
+    let isConfirmLockOpen = $state(false);
+    let isConfirmDeleteOpen = $state(false);
 
-	const themes = [
-		{ id: 'dark', name: 'Modo Noche' },
-		{ id: 'light', name: 'Modo Claro' }
-	];
+    // Mapeamos los temas al formato que espera el componente
+    const themeOptions = [
+        { value: 'dark', label: 'Modo Noche' },
+        { value: 'light', label: 'Modo Claro' }
+    ];
 
-	function handleLockConfirm() {
-		auth.lock();
-		isConfirmLockOpen = false;
-	}
+    function handleLockConfirm() {
+        auth.lock();
+        isConfirmLockOpen = false;
+    }
 
-	function handleClearAllData() {
-		isConfirmDeleteOpen = false;
-		if (useHaptics) haptics.light();
-	}
+    function handleClearAllData() {
+        isConfirmDeleteOpen = false;
+        if (useHaptics) haptics.light();
+    }
 
-	const sections = [
-		{
-			name: 'Experiencia',
-			items: [
-				{
-					label: 'Vibración al tocar',
-					type: 'toggle',
-					value: () => useHaptics,
-					set: (v: boolean) => {
-						useHaptics = v;
-						if (v) haptics.light();
-					}
-				}
-			]
-		},
-		{
-			name: 'Seguridad',
-			items: [
-				{
-					label: 'PIN de acceso',
-					type: 'action',
-					action: () => (isPinModalOpen = true),
-					btnText: 'Cambiar'
-				},
-				{
-					label: 'Bloquear sesión',
-					type: 'action',
-					variant: 'danger',
-					action: () => (isConfirmLockOpen = true),
-					btnText: 'Bloquear'
-				}
-			]
-		},
-		{
-			name: 'Datos',
-			items: [
-				{
-					label: 'Exportar historial (CSV)',
-					type: 'action',
-					action: () => {
-						if (useHaptics) haptics.light();
-					},
-					btnText: 'Exportar'
-				},
-				{
-					label: 'Borrar todos los gastos',
-					type: 'action',
-					variant: 'danger',
-					action: () => (isConfirmDeleteOpen = true),
-					btnText: 'Borrar todo'
-				}
-			]
-		}
-	];
+    const sections = [
+        {
+            name: 'Experiencia',
+            items: [
+                {
+                    label: 'Vibración al tocar',
+                    type: 'toggle',
+                    value: () => useHaptics,
+                    set: (v: boolean) => {
+                        useHaptics = v;
+                        if (v) haptics.light();
+                    }
+                }
+            ]
+        },
+        {
+            name: 'Seguridad',
+            items: [
+                {
+                    label: 'PIN de acceso',
+                    type: 'action',
+                    action: () => (isPinModalOpen = true),
+                    btnText: 'Cambiar'
+                },
+                {
+                    label: 'Bloquear sesión',
+                    type: 'action',
+                    variant: 'danger',
+                    action: () => (isConfirmLockOpen = true),
+                    btnText: 'Bloquear'
+                }
+            ]
+        },
+        {
+            name: 'Datos',
+            items: [
+                {
+                    label: 'Exportar historial (CSV)',
+                    type: 'action',
+                    action: () => {
+                        if (useHaptics) haptics.light();
+                    },
+                    btnText: 'Exportar'
+                },
+                {
+                    label: 'Borrar todos los gastos',
+                    type: 'action',
+                    variant: 'danger',
+                    action: () => (isConfirmDeleteOpen = true),
+                    btnText: 'Borrar todo'
+                }
+            ]
+        }
+    ];
 </script>
 
 <div class="mx-auto flex w-full max-w-xl flex-col gap-6 px-2 pb-10">
@@ -98,27 +100,11 @@
         </h1>
     </header>
 
-    <section
-        class="glass-panel relative flex gap-1 rounded-2xl border border-black/5 bg-black/5 p-1 dark:border-white/10 dark:bg-white/5"
-    >
-        <div
-            class="absolute top-1 bottom-1 left-1 w-[calc(50%-4px)] rounded-xl bg-primary shadow-lg transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
-            style="transform: translateX({$theme === 'light' ? '100%' : '0%'})"
-        ></div>
-
-        {#each themes as t}
-            <button
-                onclick={() => {
-                    theme.set(t.id);
-                    if (useHaptics) haptics.light();
-                }}
-                class="relative z-10 flex-1 cursor-pointer rounded-xl py-2.5 text-sm font-bold transition-colors duration-500
-                {$theme === t.id ? 'text-white' : 'opacity-40'}"
-            >
-                {t.name}
-            </button>
-        {/each}
-    </section>
+    <SegmentedControl 
+        options={themeOptions} 
+        bind:selected={$theme}
+        useHaptics={useHaptics}
+    />
 
     <div class="space-y-6">
         {#each sections as section}
@@ -192,7 +178,6 @@
 />
 
 <style>
-    /* Aseguramos que los textos hereden las variables del CSS global */
     h1, span {
         color: var(--text-main);
     }

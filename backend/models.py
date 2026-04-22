@@ -52,7 +52,7 @@ class Transaction(Base):
     type = Column(SQLEnum(TransactionType), nullable=False)
     
     amount = Column(Numeric(12, 2), nullable=False)
-    date = Column(DateTime(timezone=True), server_default=func.now())
+    date = Column(DateTime(timezone=True), nullable=True, server_default=func.now())  # Permitir null para que el usuario lo especifique
     
     category_id = Column(Integer, ForeignKey("categories.id"), nullable=False)
     description = Column(String, nullable=True)

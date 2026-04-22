@@ -64,6 +64,7 @@ class TransactionBase(BaseModel):
     category_id: int
     notes: Optional[str] = None
     frequency: FrequencyType = FrequencyType.variable
+    date: Optional[datetime] = None  # Permitir que el usuario especifique la fecha
 
 class TransactionCreate(TransactionBase):
     pass
