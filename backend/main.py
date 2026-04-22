@@ -5,6 +5,7 @@ from fastapi.security import APIKeyHeader
 import models
 from database import engine, get_db
 from routers import categories, transactions, stats
+from fastapi.openapi.utils import get_openapi #
 
 # 1. Creación de tablas automática
 models.Base.metadata.create_all(bind=engine)
@@ -17,7 +18,6 @@ app = FastAPI(
     title="Kaira Wallet API",
     description="API de gestión de gastos con protección por PIN",
     version="2.2.0",
-    dependencies=[Depends(api_key_header)] 
 )
 
 # 4. Configuración de CORS (Ahora sí, sobre 'app')
@@ -31,19 +31,42 @@ app.add_middleware(
 
 # --- CONFIGURACIÓN DE SEGURIDAD ---
 ACCESS_PIN = "8061" 
-EXEMPT_PATHS = ["/health", "/docs", "/openapi.json", "/favicon.ico"] 
+EXEMPT_PATHS = ["/health", "/docs", "/openapi.json", "/redoc", "/favicon.ico"]
+def custom_openapi():
+    if app.openapi_schema:
+        return app.openapi_schema
+    openapi_schema = get_openapi(
+        title=app.title,
+        version=app.version,
+        description=app.description,
+        routes=app.routes,
+    )
+    # Definimos que la API usa una cabecera llamada X-Kaira-PIN
+    openapi_schema["components"]["securitySchemes"] = {
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "in": "header",
+            "name": "X-Kaira-PIN"
+        }
+    }
+    # Aplicamos esto a todas las rutas de forma global en Swagger
+    openapi_schema["security"] = [{"ApiKeyAuth": []}]
+    app.openapi_schema = openapi_schema
+    return app.openapi_schema
 
+app.openapi = custom_openapi
 @app.middleware("http")
 async def verify_pin(request: Request, call_next):
     if request.method == "OPTIONS":
         return await call_next(request)
 
     path = request.url.path
-    if path in EXEMPT_PATHS or path.startswith("/docs") or path.startswith("/openapi.json"):
+    # Normalizamos el path para evitar problemas con barras finales
+    if path.rstrip("/") in [p.rstrip("/") for p in EXEMPT_PATHS] or path.startswith("/docs"):
         return await call_next(request)
-    # Verificar el PIN
+
+    # Verificar el PIN (Tu lógica actual)
     user_pin = request.headers.get("X-Kaira-PIN")
-    
     if user_pin != ACCESS_PIN:
         return JSONResponse(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -123,4 +146,4 @@ def init_predefined_categories(db):
             db.add(category)
     db.commit()
     
-# uvicorn main:app --reload --host 0.0.0.0 --port 8000
+#             uvicorn main:app --host 0.0.0.0 --port 8000 --reload

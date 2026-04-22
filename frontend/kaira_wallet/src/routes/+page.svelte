@@ -1,13 +1,14 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import GlassCard from '$lib/components/ui/GlassCard.svelte';
-    import { categoryStore } from '$lib/stores/categories';
+    import { categoriesStore } from '$lib/stores/categories.svelte';
 
     onMount(() => {
-        categoryStore.fetchCategories(1);
+        // Usamos el método refresh que definimos en el nuevo store
+        categoriesStore.refresh();
     });
 
-    // Datos ficticios para rellenar el diseño
+    // Datos ficticios
     const recentTransactions = [
         { name: 'Apple Music', category: 'Entretenimiento', amount: -10.99, icon: '🎵' },
         { name: 'Sueldo Nómina', category: 'Ingresos', amount: 2500.00, icon: '💰' },
@@ -66,7 +67,7 @@
         </div>
         
         <div class="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
-            {#each $categoryStore.slice(0, 4) as category}
+            {#each categoriesStore.all.slice(0, 4) as category}
                 <GlassCard class="p-4 min-w-[140px] !rounded-3xl flex flex-col gap-3 active-tap">
                     <div class="w-10 h-10 rounded-2xl bg-white/5 flex items-center justify-center text-lg">
                         📂

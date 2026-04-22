@@ -57,38 +57,36 @@ class CategoryWithSubcategories(Category):
 
 class TransactionBase(BaseModel):
     type: TransactionType
-    # Usamos Decimal con restricciones para mayor seguridad
     amount: Currency
     currency: CurrencyCode = CurrencyCode.EUR
     description: Optional[str] = None
     category_id: int
     notes: Optional[str] = None
     frequency: FrequencyType = FrequencyType.variable
-    date: Optional[datetime] = None  # Permitir que el usuario especifique la fecha
-
-class TransactionCreate(TransactionBase):
-    pass
+    is_paid: bool = True  # <-- Añadido con valor por defecto
 
 class TransactionUpdate(BaseModel):
-    # Todos opcionales para actualizaciones parciales
-    amount: Currency
+    amount: Optional[Currency] = None
     currency: Optional[CurrencyCode] = None
     description: Optional[str] = None
     category_id: Optional[int] = None
     notes: Optional[str] = None
     frequency: Optional[FrequencyType] = None
+    is_paid: Optional[bool] = None  # <-- Añadido para permitir actualizaciones
     date: Optional[datetime] = None
+class TransactionCreate(TransactionBase):
+    pass
 
 class Transaction(TransactionBase):
     id: int
     date: datetime
     user_id: int
+    # is_paid se hereda de TransactionBase automáticamente
     created_at: datetime
     updated_at: datetime
     
     class Config:
         from_attributes = True
-
 class TransactionWithCategory(Transaction):
     category: Category
     

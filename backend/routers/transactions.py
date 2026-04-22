@@ -24,15 +24,14 @@ def create_transaction(transaction: schemas.TransactionCreate, db: Session = Dep
         # 1. Convertimos el esquema a diccionario
         transaction_data = transaction.model_dump()
         
-        # 2. LIMPIEZA: Eliminamos 'currency' porque NO existe en models.Transaction
-        # Usamos .pop con None para que no falle si el campo no viene
+        # 2. LIMPIEZA: Eliminamos 'currency' porque NO existe en el modelo Transaction
         transaction_data.pop('currency', None)
         
         # Si no se proporciona date, usar la fecha actual
         if transaction_data.get('date') is None:
             transaction_data['date'] = datetime.now()
         
-        # 3. Ahora ya puedes desempaquetar con seguridad
+        # 3. Crear la transacción incluyendo el campo is_paid que viene del esquema
         db_transaction = models.Transaction(**transaction_data, user_id=USER_ID_MOCK)
         
         db.add(db_transaction)
@@ -52,14 +51,19 @@ def create_transaction(transaction: schemas.TransactionCreate, db: Session = Dep
 def get_transactions(
     frequency: Optional[schemas.FrequencyType] = None,
     transaction_type: Optional[schemas.TransactionType] = None,
+    is_paid: Optional[bool] = None,  # <-- Nuevo filtro para pagados/pendientes
     db: Session = Depends(get_db)
 ):
     try:
         query = db.query(models.Transaction).filter(models.Transaction.user_id == USER_ID_MOCK)
+        
         if frequency:
             query = query.filter(models.Transaction.frequency == frequency)
         if transaction_type:
             query = query.filter(models.Transaction.type == transaction_type)
+        if is_paid is not None:
+            query = query.filter(models.Transaction.is_paid == is_paid)
+            
         return query.order_by(models.Transaction.date.desc()).all()
     except Exception as e:
         print(f"❌ ERROR al obtener transacciones: {e}")

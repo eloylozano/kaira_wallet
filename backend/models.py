@@ -57,6 +57,7 @@ class Transaction(Base):
     category_id = Column(Integer, ForeignKey("categories.id"), nullable=False)
     description = Column(String, nullable=True)
     notes = Column(Text, nullable=True)
+    is_paid = Column(Boolean, default=True, nullable=False)
     
     # 4. AQUÍ TAMBIÉN: Cambia Enum por SQLEnum
     frequency = Column(SQLEnum(FrequencyType), default=FrequencyType.variable)
