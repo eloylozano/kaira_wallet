@@ -39,20 +39,20 @@
 	}
 
 	const sections = [
-		{
-			name: 'Experiencia',
-			items: [
-				{
-					label: 'Vibración al tocar',
-					type: 'toggle',
-					value: () => useHaptics,
-					set: (v: boolean) => {
-						useHaptics = v;
-						if (v) haptics.light();
-					}
-				}
-			]
-		},
+		// {
+		// 	name: 'Experiencia',
+		// 	items: [
+		// 		{
+		// 			label: 'Vibración al tocar',
+		// 			type: 'toggle',
+		// 			value: () => useHaptics,
+		// 			set: (v: boolean) => {
+		// 				useHaptics = v;
+		// 				if (v) haptics.light();
+		// 			}
+		// 		}
+		// 	]
+		// },
 		{
 			name: 'Seguridad',
 			items: [

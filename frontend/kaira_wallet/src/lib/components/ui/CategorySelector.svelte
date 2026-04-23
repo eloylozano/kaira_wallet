@@ -18,38 +18,34 @@
 	});
 
 	function toPascalCase(str: string) {
-		return str.split('-')
-			.map(s => s.charAt(0).toUpperCase() + s.slice(1))
+		return str
+			.split('-')
+			.map((s) => s.charAt(0).toUpperCase() + s.slice(1))
 			.join('');
 	}
 
 	function handleParentSelect(id: number) {
 		selectedParentId = id;
 
-		const parent = currentCategories.find(c => c.id === id);
+		const parent = currentCategories.find((c) => c.id === id);
 		if (!parent) return;
 
-		selectedCategoryId = parent.subcategories?.length
-			? parent.subcategories[0].id
-			: parent.id;
+		selectedCategoryId = parent.subcategories?.length ? parent.subcategories[0].id : parent.id;
 	}
 </script>
 
 <div class="flex flex-col gap-6">
-
 	<!-- GRUPOS -->
 	<div class="space-y-3">
-		<p class="px-2 text-[10px] font-black uppercase tracking-[0.2em] kaira-soft">
-			Grupo
-		</p>
+		<p class="kaira-soft px-2 text-[10px] font-black tracking-[0.2em] uppercase">Grupo</p>
 
-		<div class="no-scrollbar flex gap-2 overflow-x-auto px-1 pb-2">
+		<div class="grid grid-cols-3 gap-2 px-1">
 			{#each currentCategories as parent}
 				<button
 					type="button"
 					onclick={() => handleParentSelect(parent.id)}
-					class="kaira-chip flex-none rounded-2xl px-5 py-3 text-[11px] font-bold transition-all
-					{selectedParentId === parent.id ? 'kaira-chip-active' : ''}"
+					class="kaira-chip rounded-2xl px-3 py-3 text-center text-[10px] font-bold transition-all
+				{selectedParentId === parent.id ? 'kaira-chip-active' : ''}"
 				>
 					{parent.name}
 				</button>
@@ -59,12 +55,11 @@
 
 	<!-- SUBCATEGORÍAS -->
 	<div class="space-y-4">
-		<p class="px-2 text-[10px] font-black uppercase tracking-[0.2em] kaira-soft">
+		<p class="kaira-soft px-2 text-[10px] font-black tracking-[0.2em] uppercase">
 			Detalle de {selectedParent?.name || '...'}
 		</p>
 
 		<div class="grid grid-cols-3 gap-3">
-
 			{#if selectedParent?.subcategories?.length}
 				{#each selectedParent.subcategories as sub}
 					{@const Icon = Icons[toPascalCase(sub.icon)]}
@@ -81,7 +76,7 @@
 							<span class="text-2xl">✨</span>
 						{/if}
 
-						<span class="text-center text-[9px] font-black uppercase tracking-tighter kaira-muted">
+						<span class="kaira-muted text-center text-[9px] font-black tracking-tighter uppercase">
 							{sub.name}
 						</span>
 					</button>
@@ -92,12 +87,11 @@
 					onclick={() => (selectedCategoryId = selectedParentId)}
 					class="kaira-panel col-span-3 flex items-center justify-center gap-3 rounded-[24px] border-primary p-6 text-primary"
 				>
-					<span class="text-xs font-black uppercase tracking-widest">
+					<span class="text-xs font-black tracking-widest uppercase">
 						Usar {selectedParent.name}
 					</span>
 				</button>
 			{/if}
-
 		</div>
 	</div>
 </div>

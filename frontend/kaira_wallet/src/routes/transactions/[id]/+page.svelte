@@ -88,13 +88,31 @@
 	}
 </script>
 
-<div class="mx-auto flex w-full max-w-xl flex-col gap-8 px-4 pt-10 pb-20">
-	<header class="flex items-center justify-between">
-		<button onclick={() => history.back()} class="text-white/40"> ← Volver </button>
+<div class="mx-auto flex w-full max-w-xl flex-col gap-8  pt-10 pb-20">
+	<header class="flex items-center justify-between ">
+		<!-- BACK -->
+		<button
+			onclick={() => history.back()}
+			class="flex items-center gap-1 text-xs font-bold tracking-wide text-white/40 uppercase
+		transition-all hover:text-white/70 active:scale-95"
+		>
+			<span class="text-lg leading-none">←</span>
+			Volver
+		</button>
 
-		<h1 class="h1-kaira text-xl">Editar</h1>
+		<!-- TITLE -->
+		<h1 class="h1-kaira text-lg">Editar</h1>
 
-		<button onclick={handleDelete} class="text-xs font-bold text-red-400"> Borrar </button>
+		<!-- DELETE -->
+		<button
+			onclick={handleDelete}
+			class="rounded-xl border border-rose-500/20 bg-rose-500/10 px-4 py-2 text-xs
+		font-bold tracking-widest text-rose-400 uppercase
+		transition-all hover:bg-rose-500/15
+		hover:text-rose-300 active:scale-95"
+		>
+			Borrar
+		</button>
 	</header>
 
 	{#if loading}
