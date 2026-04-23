@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 import models, schemas
 from database import get_db
+from sqlalchemy import func, cast, Date
 
 router = APIRouter(prefix="/stats", tags=["Stats"])
 USER_ID_MOCK = 1  # ID temporal para saltar la seguridad
@@ -58,3 +59,26 @@ def get_stats_by_category(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error al obtener estadísticas por categoría: {str(e)}"
         )
+        
+
+@router.get("/daily-expenses")
+def get_daily_expenses(db: Session = Depends(get_db)):
+    try:
+        results = (
+            db.query(
+                cast(models.Transaction.date, Date).label("day"),
+                func.sum(models.Transaction.amount).label("total")
+            )
+            .filter(
+                models.Transaction.user_id == USER_ID_MOCK,
+                models.Transaction.type == models.TransactionType.expense
+            )
+            .group_by("day")
+            .order_by("day")
+            .all()
+        )
+
+        return {str(r.day): float(r.total) for r in results}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
