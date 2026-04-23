@@ -8,13 +8,14 @@
     let { children, class: className = '', onclick }: Props = $props();
 </script>
 
+<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
 <div 
     class="glass-card relative {className}"
     onclick={onclick}
     role={onclick ? "button" : "presentation"}
     tabindex={onclick ? 0 : -1}
 >
-    <div class="absolute inset-0 bg-gradient-to-b from-white/[0.08] to-transparent pointer-events-none rounded-[inherit] z-0"></div>
+    <div class="absolute inset-0 bg-linear-to-b from-white/6 to-transparent pointer-events-none rounded-[inherit] z-0"></div>
     
     <div class="relative z-10">
         {@render children?.()}
