@@ -37,7 +37,7 @@
 </script>
 
 <div
-	class="relative isolate flex w-full overflow-hidden rounded-2xl border border-white/5 bg-white/5 p-1"
+	class="relative isolate flex w-full overflow-hidden rounded-2xl border border-[color:var(--glass-border)] p-1"
 >
 	<!-- INDICADOR -->
 	<div
@@ -59,7 +59,9 @@
 				vibrate();
 			}}
 			class="relative z-10 flex flex-1 items-center justify-center py-3 text-[10px] font-black tracking-widest uppercase transition-colors duration-300
-			{selected === opt.value ? 'text-white' : 'text-white/30 hover:text-white/60'}"
+		{selected === opt.value
+				? 'text-[color:var(--text-main)]'
+				: 'text-[color:var(--text-soft)] hover:text-[color:var(--text-muted)]'}"
 		>
 			{opt.label}
 		</button>
@@ -69,5 +71,9 @@
 <style>
 	button {
 		-webkit-tap-highlight-color: transparent;
+	}
+
+	.kaira-segment-inactive {
+		color: var(--text-soft);
 	}
 </style>

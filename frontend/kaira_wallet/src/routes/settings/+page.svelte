@@ -112,7 +112,7 @@
 
 	<div class="space-y-6">
 		{#each sections as section}
-			<div class="flex flex-col gap-2">
+			<div class="section-anim flex flex-col gap-2">
 				<p class="px-3 text-[10px] font-black tracking-[0.3em] text-primary uppercase opacity-70">
 					{section.name}
 				</p>
@@ -158,7 +158,11 @@
 	</div>
 </div>
 
-<ChangePinModal isOpen={isPinModalOpen} onComplete={() => (isPinModalOpen = false)} onTouchOutside={() => (isPinModalOpen = false)} />
+<ChangePinModal
+	isOpen={isPinModalOpen}
+	onComplete={() => (isPinModalOpen = false)}
+	onTouchOutside={() => (isPinModalOpen = false)}
+/>
 
 <ConfirmModal
 	isOpen={isConfirmLockOpen}
@@ -190,11 +194,11 @@
 		padding-bottom: 0.5rem;
 	}
 
-	.space-y-6 > div {
-		animation: slideIn 0.5s ease forwards;
-		opacity: 0;
+	.section-anim :global(.GlassCard) {
+		backface-visibility: hidden;
+		transform: translateZ(0); /* Forzado de hardware */
 	}
-
+	
 	@keyframes slideIn {
 		from {
 			opacity: 0;
