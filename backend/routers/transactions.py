@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import asc, desc
+from sqlalchemy import asc, desc, or_
 from typing import List, Optional
 from datetime import datetime
 import models, schemas
@@ -62,6 +62,7 @@ def get_transactions(
     frequency: Optional[schemas.FrequencyType] = None,
     transaction_type: Optional[schemas.TransactionType] = None,
     is_paid: Optional[bool] = None,
+    search: Optional[str] = None,
     sort: Optional[str] = "desc",
     skip: int = Query(0, ge=0),
     limit: int = Query(20, ge=1, le=100),
@@ -72,6 +73,7 @@ def get_transactions(
             models.Transaction.user_id == USER_ID_MOCK
         )
 
+        # filtros normales
         if frequency:
             query = query.filter(models.Transaction.frequency == frequency)
 
@@ -81,6 +83,17 @@ def get_transactions(
         if is_paid is not None:
             query = query.filter(models.Transaction.is_paid == is_paid)
 
+        # 🔥 SEARCH GLOBAL REAL
+        if search:
+            query = query.join(models.Category).filter(
+                or_(
+                    models.Transaction.description.ilike(f"%{search}%"),
+                    models.Transaction.notes.ilike(f"%{search}%"),
+                    models.Category.name.ilike(f"%{search}%")
+                )
+            )
+
+        # orden
         order = desc(models.Transaction.date) if sort == "desc" else asc(models.Transaction.date)
 
         results = (
@@ -96,14 +109,19 @@ def get_transactions(
     except Exception as e:
         print(f"❌ ERROR al obtener transacciones: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+    
+
 @router.get("/count")
 def count_transactions(
     transaction_type: Optional[schemas.TransactionType] = None,
     is_paid: Optional[bool] = None,
+    search: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
     try:
-        query = db.query(models.Transaction).filter(models.Transaction.user_id == USER_ID_MOCK)
+        query = db.query(models.Transaction).filter(
+            models.Transaction.user_id == USER_ID_MOCK
+        )
 
         if transaction_type:
             query = query.filter(models.Transaction.type == transaction_type)
@@ -111,21 +129,19 @@ def count_transactions(
         if is_paid is not None:
             query = query.filter(models.Transaction.is_paid == is_paid)
 
+        if search:
+            query = query.join(models.Category).filter(
+                or_(
+                    models.Transaction.description.ilike(f"%{search}%"),
+                    models.Transaction.notes.ilike(f"%{search}%"),
+                    models.Category.name.ilike(f"%{search}%")
+                )
+            )
+
         return {"total": query.count()}
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    # --- OBTENER UNA SOLA TRANSACCIÓN ---
-@router.get("/{transaction_id}", response_model=schemas.TransactionWithCategory)
-def get_transaction(transaction_id: int, db: Session = Depends(get_db)):
-    db_transaction = db.query(models.Transaction).filter(
-        models.Transaction.id == transaction_id,
-        models.Transaction.user_id == USER_ID_MOCK
-    ).first()
-    
-    if not db_transaction:
-        raise HTTPException(status_code=404, detail="Transacción no encontrada")
-    
-    return db_transaction
 
 @router.put("/{transaction_id}", response_model=schemas.Transaction)
 def update_transaction(

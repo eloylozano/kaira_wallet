@@ -7,6 +7,7 @@
 
 	import { transactionsStore } from '$lib/stores/transactions.svelte';
 	import { groupByMonth } from '$lib/utils/groupByMonth';
+	import SegmentedControl from '$lib/components/ui/SegmentedControl.svelte';
 
 	let search = $state('');
 	let type = $state('');
@@ -23,36 +24,26 @@
 
 		page = 0;
 	});
-
 	$effect(() => {
 		page;
 		type;
 		isPaid;
+		search;
 
 		const skip = page * limit;
 
 		transactionsStore.fetch({
 			transaction_type: type || undefined,
 			is_paid: isPaid === '' ? undefined : isPaid,
+			search: search || undefined, // 👈 AQUÍ
 			skip,
 			limit,
-			sort: sort 
+			sort
 		});
 	});
-
 	let grouped = $derived.by(() => {
 		let list = [...transactionsStore.all];
 
-		// SEARCH
-		if (search) {
-			const q = search.toLowerCase();
-
-			list = list.filter((tx) => {
-				return (
-					tx.description?.toLowerCase().includes(q) || tx.category?.name?.toLowerCase().includes(q)
-				);
-			});
-		}
 
 		// SORT
 		list.sort((a, b) => {
@@ -82,7 +73,13 @@
 
 	<div class="space-y-3 rounded-3xl border border-white/5 bg-transparent p-2">
 		<FilterBar bind:type bind:isPaid />
-		<SortBar bind:sort />
+		<SegmentedControl
+			bind:selected={sort}
+			options={[
+				{ value: 'desc', label: 'Recientes' },
+				{ value: 'asc', label: 'Antiguos' }
+			]}
+		/>
 	</div>
 
 	{#each Object.entries(grouped) as [month, items]}
