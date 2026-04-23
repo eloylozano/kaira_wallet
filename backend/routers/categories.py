@@ -140,29 +140,46 @@ def update_category(
 # =========================================================
 # 📌 DELETE CATEGORY
 # =========================================================
+from sqlalchemy import exists
+
 @router.delete("/{category_id}")
 def delete_category(category_id: int, db: Session = Depends(get_db)):
-    # 1. Buscamos la categoría específica asegurando que pertenece al usuario
+
     db_category = db.query(models.Category).filter(
         models.Category.id == category_id,
         models.Category.user_id == USER_ID_MOCK
     ).first()
 
     if not db_category:
-        raise HTTPException(status_code=404, detail="Categoría no encontrada")
+        raise HTTPException(
+            status_code=404,
+            detail="Categoría no encontrada"
+        )
+
+    # 🚨 comprobar movimientos asociados
+    has_transactions = db.query(
+        db.query(models.Transaction)
+        .filter(models.Transaction.category_id == category_id)
+        .exists()
+    ).scalar()
+
+    if has_transactions:
+        raise HTTPException(
+            status_code=409,
+            detail="No puedes borrar esta categoría porque tiene movimientos asociados."
+        )
 
     try:
-        # 2. IMPORTANTE: Manejar las subcategorías
-        # Si tiene hijas, podrías o borrarlas también o "huérfanas" pasándolas a None
-        # Aquí las borramos explícitamente para evitar errores de integridad
-        db.query(models.Category).filter(models.Category.parent_id == category_id).delete()
-
-        # 3. Borramos solo ESTA categoría
         db.delete(db_category)
         db.commit()
-        
-        return {"message": f"Categoría {category_id} eliminada correctamente"}
-    
+
+        return {
+            "message": f"Categoría {category_id} eliminada correctamente"
+        }
+
     except Exception as e:
         db.rollback()
-        raise HTTPException(status_code=500, detail=f"Error al borrar: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error al borrar: {str(e)}"
+        )

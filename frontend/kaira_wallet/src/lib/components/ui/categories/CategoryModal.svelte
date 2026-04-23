@@ -11,7 +11,6 @@
 	let icon = $state(editing?.icon ?? 'circle');
 	let type = $state(editing?.transaction_type ?? 'expense');
 
-	// 👇 NUEVO: parent
 	let parentId = $state<number | null>(editing?.parent_id ?? null);
 
 	const types = [
@@ -45,27 +44,39 @@
 	}
 </script>
 
-<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-	<div
-		class="
-			
+<div class="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 pb-32 sm:items-center sm:pb-4">
+    
+    <div
+        class="
+            w-full sm:max-w-xl
 
-			relative w-full max-w-xl rounded-3xl border
-			border-white/10
-			bg-white/10
-			p-5
+            bg-white/10
+            border border-white/10
+            backdrop-blur-xl backdrop-saturate-150
+            shadow-2xl
 
-			shadow-2xl backdrop-blur-xl
-			backdrop-saturate-150
-		"
-	>
+            /* 2. Redondeado completo para que flote bien */
+            rounded-3xl
+
+            max-h-[75vh]
+            overflow-y-auto
+
+            p-5
+        "
+    >
+		
+		<!-- HANDLE (solo móvil) -->
+		<div class="mx-auto mb-4 h-1 w-12 rounded-full bg-white/20 sm:hidden"></div>
+
 		<h2 class="mb-5 text-center text-xl font-bold tracking-tight">
 			{editing ? 'Editar categoría' : 'Nueva categoría'}
 		</h2>
 
 		<!-- INPUT -->
 		<div class="mb-4">
-			<label class="text-[10px] font-bold tracking-widest uppercase opacity-60"> Nombre </label>
+			<label class="text-[10px] font-bold tracking-widest uppercase opacity-60">
+				Nombre
+			</label>
 
 			<input
 				bind:value={name}
@@ -76,19 +87,16 @@
 					bg-white/5
 					px-4 py-3
 					text-sm font-semibold
-					transition
 					outline-none
-					focus:border-1
-					focus:border-white/50
+					transition
 					focus:bg-white/10
-					focus:ring-0
 				"
 			/>
 		</div>
 
 		<!-- TYPE -->
 		<div class="mb-5">
-			<p class="mb-2 text-[10px] font-bold tracking-widest uppercase opacity-60">Tipo</p>
+			<p class="mb-2 text-[10px] font-bold uppercase opacity-60">Tipo</p>
 
 			<SegmentedControl
 				bind:selected={type}
@@ -102,27 +110,36 @@
 
 		<!-- PARENT -->
 		<div class="mb-5">
-			<p class="mb-2 text-[10px] font-bold uppercase opacity-60">Categoría padre (opcional)</p>
+			<p class="mb-2 text-[10px] font-bold uppercase opacity-60">
+				Categoría padre (opcional)
+			</p>
 
 			<CategoryParentSelector bind:selected={parentId} />
 		</div>
 
 		<!-- ICON -->
 		<div class="mb-6">
-			<p class="mb-2 text-[10px] font-bold tracking-widest uppercase opacity-60">Icono</p>
+			<p class="mb-2 text-[10px] font-bold uppercase opacity-60">Icono</p>
 
 			<IconPicker bind:icon />
 		</div>
 
 		<!-- ACTIONS -->
-		<div class="flex gap-2">
-			<button onclick={cancel} class="flex-1 rounded-xl bg-white/5 py-3 text-sm font-bold">
+		<div class="flex gap-2 pb-2">
+			<button
+				onclick={cancel}
+				class="flex-1 rounded-xl bg-white/5 py-3 text-sm font-bold"
+			>
 				Cancelar
 			</button>
 
-			<button onclick={save} class="flex-1 rounded-xl bg-primary py-3 text-sm font-bold text-white">
+			<button
+				onclick={save}
+				class="flex-1 rounded-xl bg-primary py-3 text-sm font-bold text-white"
+			>
 				Guardar
 			</button>
 		</div>
+
 	</div>
 </div>

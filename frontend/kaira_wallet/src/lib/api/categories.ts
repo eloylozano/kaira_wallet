@@ -47,6 +47,7 @@ export async function deleteCategory(id: number) {
 	});
 
 	if (!res.ok) {
-		throw new Error((await res.json()).detail);
+		const err = await res.json();
+		throw new Error(err.detail);
 	}
 }
