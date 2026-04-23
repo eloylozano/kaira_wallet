@@ -70,15 +70,18 @@ class TransactionBase(BaseModel):
     frequency: FrequencyType = FrequencyType.variable
     is_paid: bool = True  # <-- Añadido con valor por defecto
 
+
 class TransactionUpdate(BaseModel):
-    amount: Optional[Currency] = None
-    currency: Optional[CurrencyCode] = None
-    description: Optional[str] = None
-    category_id: Optional[int] = None
-    notes: Optional[str] = None
-    frequency: Optional[FrequencyType] = None
-    is_paid: Optional[bool] = None  # <-- Añadido para permitir actualizaciones
+    type: Optional[str] = None
+    amount: Optional[float] = None
     date: Optional[datetime] = None
+    description: Optional[str] = None
+    notes: Optional[str] = None
+    category_id: Optional[int] = None
+    is_paid: Optional[bool] = None
+    frequency: Optional[str] = None
+    user_id: Optional[int] = None
+    currency: Optional[str] = None
 class TransactionCreate(TransactionBase):
     pass
 
@@ -124,3 +127,31 @@ class TransactionStatsResponse(BaseModel):
     total_invest: Decimal
     fixed_transactions: int
     variable_transactions: int
+    
+# ===== BUDGET =====
+
+class MonthlyBudgetBase(BaseModel):
+    amount: Currency
+    month: int
+    year: int
+
+
+class MonthlyBudgetCreate(MonthlyBudgetBase):
+    pass
+
+
+class MonthlyBudget(MonthlyBudgetBase):
+    id: int
+    user_id: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+        
+class BudgetOverview(BaseModel):
+    budget: Decimal
+    spent: Decimal
+    remaining: Decimal
+    daily_budget: Decimal
+    days_left: int

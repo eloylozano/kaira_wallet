@@ -21,7 +21,7 @@
 	let isPinModalOpen = $state(false);
 	let isConfirmLockOpen = $state(false);
 	let isConfirmDeleteOpen = $state(false);
-
+	let monthlyBudget = $state<number>(350);
 	// Mapeamos los temas al formato que espera el componente
 	const themeOptions = [
 		{ value: 'dark', label: 'Modo Noche' },
@@ -39,20 +39,6 @@
 	}
 
 	const sections = [
-		// {
-		// 	name: 'Experiencia',
-		// 	items: [
-		// 		{
-		// 			label: 'Vibración al tocar',
-		// 			type: 'toggle',
-		// 			value: () => useHaptics,
-		// 			set: (v: boolean) => {
-		// 				useHaptics = v;
-		// 				if (v) haptics.light();
-		// 			}
-		// 		}
-		// 	]
-		// },
 		{
 			name: 'Seguridad',
 			items: [
@@ -71,16 +57,24 @@
 				}
 			]
 		},
+
+		{
+			name: 'Finanzas',
+			items: [
+				{
+					label: 'Presupuesto mensual',
+					type: 'input'
+				}
+			]
+		},
+
 		{
 			name: 'Datos',
 			items: [
 				{
 					label: 'Configurar categorías',
 					type: 'action',
-					action: () => {
-						// luego lo conectas a router o modal
-						goto('/categories');
-					},
+					action: () => goto('/categories'),
 					btnText: 'Configurar'
 				},
 				{
@@ -144,6 +138,22 @@
 										text={item.btnText || 'Ejecutar'}
 										variant={item.variant || 'normal'}
 									/>
+								{:else if item.type === 'input'}
+									<div class="flex items-center gap-3">
+										<span class="text-xs opacity-50">€</span>
+
+										<input
+											type="number"
+											bind:value={monthlyBudget}
+											min="0"
+											class="w-16 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-right
+               text-sm font-bold text-white/90 transition
+               outline-none focus:border-white/20 focus:bg-white/10 focus:ring-0"
+											oninput={() => {
+												if (useHaptics) haptics.light();
+											}}
+										/>
+									</div>
 								{/if}
 							</div>
 
@@ -158,55 +168,16 @@
 	</div>
 </div>
 
-<ChangePinModal
-	isOpen={isPinModalOpen}
-	onComplete={() => (isPinModalOpen = false)}
-	onTouchOutside={() => (isPinModalOpen = false)}
-/>
-
-<ConfirmModal
-	isOpen={isConfirmLockOpen}
-	title="Seguridad"
-	message="¿Quieres bloquear la sesión ahora?"
-	confirmText="Bloquear"
-	onConfirm={handleLockConfirm}
-	onCancel={() => (isConfirmLockOpen = false)}
-/>
-
-<ConfirmModal
-	isOpen={isConfirmDeleteOpen}
-	title="Borrar todo"
-	message="Esta acción eliminará todos tus gastos permanentemente. ¿Estás seguro?"
-	confirmText="Eliminar permanentemente"
-	onConfirm={handleClearAllData}
-	onCancel={() => (isConfirmDeleteOpen = false)}
-/>
-
 <style>
-	h1,
-	span {
-		color: var(--text-main);
+	/* Chrome, Safari, Edge */
+	input[type='number']::-webkit-outer-spin-button,
+	input[type='number']::-webkit-inner-spin-button {
+		-webkit-appearance: none;
+		margin: 0;
 	}
 
-	.ios-header {
-		padding-top: var(--safe-area-top);
-		padding-left: 0.5rem;
-		padding-bottom: 0.5rem;
-	}
-
-	.section-anim :global(.GlassCard) {
-		backface-visibility: hidden;
-		transform: translateZ(0); /* Forzado de hardware */
-	}
-	
-	@keyframes slideIn {
-		from {
-			opacity: 0;
-			transform: translateY(8px);
-		}
-		to {
-			opacity: 1;
-			transform: translateY(0);
-		}
+	/* Firefox */
+	input[type='number'] {
+		-moz-appearance: textfield;
 	}
 </style>

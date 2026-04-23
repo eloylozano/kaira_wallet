@@ -4,6 +4,7 @@ from sqlalchemy import Column, Enum as SQLEnum, Integer, String, Numeric, DateTi
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database import Base
+from sqlalchemy import Column, Integer, String, Float, ForeignKey, DateTime, Boolean
 
 class TransactionType(enum.Enum):
     income = "income"
@@ -81,3 +82,16 @@ class Transaction(Base):
     
     user = relationship("User", back_populates="transactions")
     category = relationship("Category", back_populates="transactions")
+    
+    
+    
+class MonthlyBudget(Base):
+    __tablename__ = "monthly_budgets"
+
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, index=True)
+
+    year = Column(Integer)
+    month = Column(Integer)
+
+    amount = Column(Float)

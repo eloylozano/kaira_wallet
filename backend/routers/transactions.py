@@ -143,34 +143,90 @@ def count_transactions(
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.put("/{transaction_id}", response_model=schemas.Transaction)
-def update_transaction(
-    transaction_id: int, 
-    transaction_update: schemas.TransactionCreate, # O un esquema Update si prefieres campos opcionales
+@router.get("/{transaction_id}", response_model=schemas.TransactionWithCategory)
+def get_transaction(
+    transaction_id: int,
     db: Session = Depends(get_db)
 ):
-    db_query = db.query(models.Transaction).filter(
+    tx = db.query(models.Transaction).filter(
         models.Transaction.id == transaction_id,
         models.Transaction.user_id == USER_ID_MOCK
-    )
-    
-    db_transaction = db_query.first()
-    
-    if not db_transaction:
-        raise HTTPException(status_code=404, detail="Transacción no encontrada")
-    
-    update_data = transaction_update.model_dump()
-    
-    update_data.pop("currency", None)
-    # Manejo de la fecha si viene como string
-    if isinstance(update_data.get("date"), str):
-        update_data["date"] = datetime.fromisoformat(update_data["date"].replace("Z", "+00:00"))
+    ).first()
 
-    db_query.update(update_data, synchronize_session=False)
-    db.commit()
-    db.refresh(db_transaction)
-    return db_transaction
+    if not tx:
+        raise HTTPException(
+            status_code=404,
+            detail="Transacción no encontrada"
+        )
 
+    return tx
+@router.put("/{transaction_id}", response_model=schemas.Transaction)
+def update_transaction(
+    transaction_id: int,
+    transaction_update: schemas.TransactionUpdate,
+    db: Session = Depends(get_db)
+):
+    try:
+        db_transaction = db.query(models.Transaction).filter(
+            models.Transaction.id == transaction_id,
+            models.Transaction.user_id == USER_ID_MOCK
+        ).first()
+
+        if not db_transaction:
+            raise HTTPException(
+                status_code=404,
+                detail="Transacción no encontrada"
+            )
+
+        # Solo campos enviados
+        update_data = transaction_update.model_dump(
+            exclude_unset=True
+        )
+
+        # quitar campo no persistente
+        update_data.pop("currency", None)
+
+        # normalizar fecha
+        if isinstance(update_data.get("date"), str):
+            update_data["date"] = datetime.fromisoformat(
+                update_data["date"].replace("Z", "+00:00")
+            )
+
+        # validar categoría si viene
+        if "category_id" in update_data:
+            category = db.query(models.Category).filter(
+                models.Category.id == update_data["category_id"]
+            ).first()
+
+            if not category:
+                raise HTTPException(
+                    status_code=404,
+                    detail="Categoría no existe"
+                )
+
+        # aplicar cambios
+        for field, value in update_data.items():
+            setattr(db_transaction, field, value)
+
+        db.commit()
+        db.refresh(db_transaction)
+
+        return db_transaction
+
+    except HTTPException:
+        db.rollback()
+        raise
+
+    except Exception as e:
+        db.rollback()
+        print(f"❌ ERROR update transaction: {e}")
+
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+        
+        
 # --- ELIMINAR TRANSACCIÓN ---
 @router.delete("/{transaction_id}")
 def delete_transaction(transaction_id: int, db: Session = Depends(get_db)):

@@ -4,22 +4,33 @@
 
     let dailyExpenses = $state<Record<string, number>>({});
 
-    // 🟢 LÓGICA DE FILTRADO POR MES ACTUAL
+    // 🟢 LÓGICA DE RELLENO DE DÍAS
     let chartData = $derived(() => {
         const now = new Date();
-        // Primer día del mes actual a las 00:00:00
-        const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const year = now.getFullYear();
+        const month = now.getMonth();
+        
+        // Obtenemos el último día del mes actual (ej: 30 o 31)
+        const lastDay = new Date(year, month + 1, 0).getDate();
+        
+        const fullMonthData = [];
 
-        return Object.entries(dailyExpenses)
-            .map(([date, value]) => ({
-                date,
-                value: Number(value || 0),
-                timestamp: new Date(date).getTime()
-            }))
-            // Filtramos solo los que pertenecen al mes actual
-            .filter(item => item.timestamp >= firstDayOfMonth.getTime())
-            .sort((a, b) => a.timestamp - b.timestamp)
-            .map(({ date, value }) => ({ date, value }));
+        for (let day = 1; day <= lastDay; day++) {
+            // Construimos la clave YYYY-MM-DD para buscar en el objeto del back
+            // Importante: Asegurar el formato "2026-04-02" con ceros a la izquierda
+            const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            
+            fullMonthData.push({
+                date: dateKey,
+                value: dailyExpenses[dateKey] || 0 // Si no hay dato, es 0
+            });
+        }
+
+        // Si quieres que el gráfico solo llegue hasta "Hoy", puedes filtrar aquí:
+        const today = now.getDate();
+        return fullMonthData.slice(0, today);
+        
+        return fullMonthData;
     });
 
     $effect(() => {
@@ -32,6 +43,6 @@
     });
 </script>
 
-<div class="mt-6">
+<div class="mt-4">
     <ExpenseChart data={chartData()} />
 </div>

@@ -16,6 +16,71 @@ export const transactionsStore = {
 		_transactions = Array.isArray(data) ? [...data] : [];
 	},
 
+	findLocal(id: number) {
+		return _transactions.find(t => t.id === id);
+	},
+
+	async getById(id: number) {
+		const local = this.findLocal(id);
+
+		if (local) return local;
+
+		try {
+			const baseUrl = PUBLIC_API_URL.replace(/\/$/, '');
+
+			const res = await fetch(
+				`${baseUrl}/transactions/${id}`,
+				{
+					headers: {
+						'X-Kaira-PIN': PUBLIC_KAIRA_PIN
+					}
+				}
+			);
+
+			if (!res.ok) return null;
+
+			return await res.json();
+
+		} catch (err) {
+			console.error('Error loading transaction', err);
+			return null;
+		}
+	},
+
+	async update(id: number, payload: any) {
+		try {
+			const baseUrl = PUBLIC_API_URL.replace(/\/$/, '');
+
+			const res = await fetch(
+				`${baseUrl}/transactions/${id}`,
+				{
+					method: 'PUT',
+					headers: {
+						'Content-Type': 'application/json',
+						'X-Kaira-PIN': PUBLIC_KAIRA_PIN
+					},
+					body: JSON.stringify(payload)
+				}
+			);
+
+			if (!res.ok) {
+				throw new Error('Error updating transaction');
+			}
+
+			const updated = await res.json();
+
+			_transactions = _transactions.map(t =>
+				t.id === id ? updated : t
+			);
+
+			return updated;
+
+		} catch (err) {
+			console.error(err);
+			return null;
+		}
+	},
+
 	async fetch(params?: {
 		transaction_type?: string;
 		is_paid?: boolean;
@@ -24,11 +89,11 @@ export const transactionsStore = {
 		limit?: number;
 		sort?: 'asc' | 'desc';
 	}) {
+
 		const baseUrl = PUBLIC_API_URL.replace(/\/$/, '');
 
 		const query = new URLSearchParams();
 
-		// filtros
 		if (params?.transaction_type) {
 			query.append('transaction_type', params.transaction_type);
 		}
@@ -45,34 +110,44 @@ export const transactionsStore = {
 			query.append('search', params.search);
 		}
 
-		// 👇 COUNT query (SIN paginación)
 		const countQuery = new URLSearchParams(query);
 
-		// paginación SOLO para data
 		query.append('skip', String(params?.skip ?? 0));
 		query.append('limit', String(params?.limit ?? 20));
 
 		try {
+
 			const [resData, resCount] = await Promise.all([
-				fetch(`${baseUrl}/transactions/?${query.toString()}`, {
-					headers: { 'X-Kaira-PIN': PUBLIC_KAIRA_PIN }
-				}),
-				fetch(`${baseUrl}/transactions/count?${countQuery.toString()}`, {
-					headers: { 'X-Kaira-PIN': PUBLIC_KAIRA_PIN }
-				})
+				fetch(
+					`${baseUrl}/transactions/?${query}`,
+					{
+						headers: {
+							'X-Kaira-PIN': PUBLIC_KAIRA_PIN
+						}
+					}
+				),
+
+				fetch(
+					`${baseUrl}/transactions/count?${countQuery}`,
+					{
+						headers: {
+							'X-Kaira-PIN': PUBLIC_KAIRA_PIN
+						}
+					}
+				)
 			]);
 
 			if (resData.ok) {
-				const data = await resData.json();
-				this.set(data);
+				this.set(await resData.json());
 			}
 
 			if (resCount.ok) {
 				const json = await resCount.json();
 				_total = json.total;
 			}
+
 		} catch (err) {
-			console.error('❌ Error store transactions:', err);
+			console.error('Store error:', err);
 		}
 	}
 };
