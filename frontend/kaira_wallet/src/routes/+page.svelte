@@ -6,7 +6,7 @@
 
 	import HomeChart from '$lib/components/charts/HomeChart.svelte';
 	import RecentTransactions from '$lib/components/ui/RecentTransactions.svelte';
-	import BudgetProgress from '$lib/components/ui/BudgetProgress.svelte';
+	import BudgetProgress from '$lib/components/home/BudgetProgress.svelte';
 
 	let monthlyBudget = 350;
 

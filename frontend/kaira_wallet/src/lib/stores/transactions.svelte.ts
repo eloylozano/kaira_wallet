@@ -47,6 +47,22 @@ export const transactionsStore = {
 		}
 	},
 
+
+	// Dentro de transactionsStore
+	async getGlobalStats() {
+		try {
+			const res = await fetch(`${PUBLIC_API_URL}/stats/`, {
+				headers: { 'X-Kaira-PIN': PUBLIC_KAIRA_PIN }
+			});
+			if (res.ok) {
+				return await res.json(); // Esto devuelve total_income, total_expense, etc.
+			}
+		} catch (err) {
+			console.error("Error cargando stats globales", err);
+		}
+		return null;
+	},
+	
 	async update(id: number, payload: any) {
 		try {
 			const baseUrl = PUBLIC_API_URL.replace(/\/$/, '');
@@ -149,5 +165,10 @@ export const transactionsStore = {
 		} catch (err) {
 			console.error('Store error:', err);
 		}
+
+
 	}
+
+
+	// D
 };

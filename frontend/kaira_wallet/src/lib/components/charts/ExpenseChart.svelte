@@ -81,9 +81,9 @@
         </div>
     </div>
 
-    <div class="relative z-10 mt-2 flex justify-between px-10 text-[9px] font-bold uppercase opacity-30 tracking-tighter">
+    <div class="relative z-10 mt-2 flex justify-between pl-10 text-[9px] font-bold uppercase opacity-30 tracking-tighter">
         <span>1 {new Date().toLocaleString('es', {month: 'short'})}</span>
-        <span>Corte Hoy</span>
+        <span>Hoy</span>
     </div>
 </div>
 

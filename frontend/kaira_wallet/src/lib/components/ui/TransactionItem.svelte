@@ -25,7 +25,7 @@
             case 'income':
                 return {
                     icon: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20',
-                    amount: 'text-emerald-400',
+                    amount: 'text-primary',
                     prefix: '+'
                 };
             case 'expense':
