@@ -1,14 +1,13 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 
-	import SegmentedControl from '$lib/components/ui/SegmentedControl.svelte';
-	import AmountInput from '$lib/components/ui/AmountInput.svelte';
-	import CategorySelector from '$lib/components/ui/CategorySelector.svelte';
-	import DatePicker from '$lib/components/ui/DatePicker.svelte';
-	import NoteInput from '$lib/components/ui/NoteInput.svelte';
-
 	import { transactionsStore } from '$lib/stores/transactions.svelte';
 	import { createTransaction, updateTransaction } from '$lib/api/transactions';
+	import AmountInput from '../ui/AmountInput.svelte';
+	import CategorySelector from '../ui/CategorySelector.svelte';
+	import DatePicker from '../ui/DatePicker.svelte';
+	import NoteInput from '../ui/NoteInput.svelte';
+	import SegmentedControl from '../ui/SegmentedControl.svelte';
 
 	// ---------------- TYPES ----------------
 	type TransactionType = 'expense' | 'income' | 'invest';

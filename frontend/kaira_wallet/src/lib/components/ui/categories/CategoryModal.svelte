@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { categoriesStore } from '$lib/stores/categories.svelte';
 	import IconPicker from './IconPicker.svelte';
-	import SegmentedControl from '$lib/components/ui/SegmentedControl.svelte';
+	import SegmentedControl from '$lib/components/ui/control/SegmentedControl.svelte';
 	import { createCategory, updateCategory } from '$lib/api/categories';
 	import CategoryParentSelector from './CategoryParentSelector.svelte';
 	import GlassInput from '../GlassInput.svelte';

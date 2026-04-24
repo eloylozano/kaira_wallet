@@ -5,8 +5,8 @@
 	import { onMount } from 'svelte';
 
 	import HomeChart from '$lib/components/charts/HomeChart.svelte';
-	import RecentTransactions from '$lib/components/ui/RecentTransactions.svelte';
 	import BudgetProgress from '$lib/components/home/BudgetProgress.svelte';
+	import RecentTransactions from '$lib/components/ui/RecentTransactions.svelte';
 
 	let monthlyBudget = 350;
 

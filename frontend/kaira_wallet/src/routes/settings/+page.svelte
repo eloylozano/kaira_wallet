@@ -1,13 +1,13 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { theme } from '$lib/stores/theme';
-	import SegmentedControl from '$lib/components/ui/SegmentedControl.svelte';
-	import GlassCard from '$lib/components/ui/GlassCard.svelte';
-	import GlassButton from '$lib/components/ui/GlassButton.svelte';
+	import GlassButton from '$lib/components/ui/core/GlassButton.svelte';
 	import ChangePinModal from '$lib/components/ui/ChangePinModal.svelte';
 	import ConfirmModal from '$lib/components/ui/ConfirmModal.svelte';
 	import { auth } from '$lib/stores/auth';
 	import { goto } from '$app/navigation';
+	import GlassCard from '$lib/components/ui/core/GlassCard.svelte';
+	import SegmentedControl from '$lib/components/ui/SegmentedControl.svelte';
 
 	const haptics = {
 		light: () => {
