@@ -61,6 +61,7 @@ export const iconGroups = {
 	transport: [
 		'car',
 		'bike',
+		'motorbike',
 		'bus',
 		'train',
 		'plane',
@@ -85,7 +86,7 @@ export const iconGroups = {
 		'smile',
         'wrench',
         'shirt',
-        'trousers'
+        'trousers',
 	],
 
 	basics: [

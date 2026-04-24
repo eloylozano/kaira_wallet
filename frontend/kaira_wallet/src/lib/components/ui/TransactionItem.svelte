@@ -79,7 +79,7 @@
         </p>
 
         <div class="flex items-center gap-2">
-            <p class="text-[10px] font-black uppercase tracking-wider opacity-40">
+            <p class="text-[10px] font-bold uppercase tracking-wider opacity-40">
                 {tx.category?.name}
             </p>
             <span class="h-1 w-1 rounded-full bg-white/10"></span>

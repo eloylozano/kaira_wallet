@@ -2,18 +2,39 @@
 	import { categoriesStore } from '$lib/stores/categories.svelte';
 	import * as Icons from 'lucide-svelte';
 
-	let { type, selectedCategoryId = $bindable() } = $props();
+	type Category = {
+		id: number;
+		name: string;
+		icon?: string;
+		subcategories?: Category[];
+	};
+
+	let { type, selectedCategoryId = $bindable<number | null>() } = $props<{
+		type: string;
+		selectedCategoryId: number | null;
+	}>();
+
 	let selectedParentId = $state<number | null>(null);
 
-	let currentCategories = $derived(categoriesStore.getByType(type));
-	let selectedParent = $derived(currentCategories.find((c) => c.id === selectedParentId));
+	let currentCategories = $derived<Category[]>(categoriesStore.getByType(type));
 
+	let selectedParent = $derived<Category | undefined>(
+		currentCategories.find((c) => c.id === selectedParentId)
+	);
+
+	// inicialización segura (evita auto overwrite raro)
 	$effect(() => {
 		if (!currentCategories.length) return;
+
+		// si ya hay selección válida, no la pisamos
+		if (selectedParentId && currentCategories.some((c) => c.id === selectedParentId)) {
+			return;
+		}
 
 		const first = currentCategories[0];
 
 		selectedParentId = first.id;
+
 		selectedCategoryId = first.subcategories?.length ? first.subcategories[0].id : first.id;
 	});
 
@@ -68,15 +89,23 @@
 						type="button"
 						onclick={() => (selectedCategoryId = sub.id)}
 						class="kaira-panel flex flex-col items-center gap-2 rounded-[24px] p-4 transition-all
-						{selectedCategoryId === sub.id ? 'glow-primary border-primary' : 'opacity-70'}"
+							{selectedCategoryId === sub.id
+							? 'kaira-chip-active'
+							: 'bg-emerald-500/5 text-emerald-200/60 hover:bg-emerald-500/10 hover:text-emerald-100'}"
 					>
 						{#if Icon}
-							<Icon class="h-6 w-6 text-primary" />
+							<Icon
+								class="h-6 w-6 transition-colors
+							{selectedCategoryId === sub.id ? 'text-white' : 'text-emerald-300/60'}"
+							/>
 						{:else}
 							<span class="text-2xl">✨</span>
 						{/if}
 
-						<span class="kaira-muted text-center text-[9px] font-black tracking-tighter uppercase">
+						<span
+							class="text-center text-[9px] font-bold uppercase transition-colors
+							{selectedCategoryId === sub.id ? 'text-white' : 'text-gray-200/60'}"
+						>
 							{sub.name}
 						</span>
 					</button>

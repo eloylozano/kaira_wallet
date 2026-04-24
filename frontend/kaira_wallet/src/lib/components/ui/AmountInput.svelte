@@ -1,37 +1,45 @@
 <script lang="ts">
-	let { value = $bindable(), type = 'expense' } = $props();
+	type TransactionType = 'expense' | 'income' | 'invest';
 
-	// Estado interno para el input
-	let displayValue = $state(value ? parseFloat(value).toFixed(2) : '');
+	let { value = $bindable<string>(), type = 'expense' as TransactionType } = $props<{
+		value: string;
+		type?: TransactionType;
+	}>();
 
-	// 1. Sincroniza hacia AFUERA: cuando escribes, actualizas el 'amount' del padre
+	let displayValue = $state<string>('');
+
+	// PADRE → INPUT
+	$effect(() => {
+		if (value === undefined || value === null || value === '') {
+			displayValue = '';
+			return;
+		}
+
+		// asegura formato string limpio
+		displayValue = String(value);
+	});
+
+	// INPUT → PADRE
 	$effect(() => {
 		value = displayValue;
 	});
 
-	// 2. Sincroniza hacia ADENTRO: cuando el padre hace amount = '', el input se limpia
-	$effect(() => {
-		if (value === '' && displayValue !== '') {
-			displayValue = '';
-		}
-	});
-
-	const colors = {
+	const colors: Record<TransactionType, string> = {
 		expense: 'text-red-500',
 		income: 'text-emerald-500',
 		invest: 'text-blue-500'
 	};
 
-	const bgColors = {
+	const bgColors: Record<TransactionType, string> = {
 		expense: 'bg-red-500/5',
 		income: 'bg-emerald-500/5',
 		invest: 'bg-blue-500/5'
 	};
 
-	function formatToDecimal(val: string) {
+	function formatToDecimal(val: string): string {
 		if (!val) return '';
-		const numericValue = parseFloat(val);
-		return isNaN(numericValue) ? '' : numericValue.toFixed(2);
+		const numericValue = Number.parseFloat(val);
+		return Number.isNaN(numericValue) ? '' : numericValue.toFixed(2);
 	}
 
 	function handleInput(e: Event) {
@@ -41,7 +49,7 @@
 
 	function handleBlur() {
 		displayValue = formatToDecimal(displayValue);
-		// Vibración sutil
+
 		if (typeof navigator !== 'undefined' && navigator.vibrate) {
 			navigator.vibrate(5);
 		}
@@ -49,9 +57,12 @@
 </script>
 
 <div
-	class="glass-panel relative rounded-[32px] border border-white/10 p-8 transition-colors duration-500 {bgColors[type]}"
+	class="glass-panel relative rounded-[32px] border border-white/10 p-8 transition-colors duration-500 {bgColors[
+		type
+	]}"
 >
 	<p class="text-center text-[10px] font-black tracking-[0.2em] uppercase opacity-40">Importe</p>
+
 	<div class="mt-2 flex items-center justify-center gap-1">
 		<input
 			type="number"
@@ -61,14 +72,16 @@
 			value={displayValue}
 			oninput={handleInput}
 			onblur={handleBlur}
-			class="amount-input w-3/4 bg-transparent text-center text-6xl font-black placeholder:opacity-10 {colors[type]}"
+			class="amount-input w-3/4 bg-transparent text-center text-6xl font-black placeholder:opacity-10 {colors[
+				type
+			]}"
 		/>
+
 		<span class="text-5xl font-bold opacity-50 {colors[type]}">€</span>
 	</div>
 </div>
 
 <style>
-	/* Eliminamos cualquier estilo por defecto del navegador */
 	.amount-input {
 		appearance: none;
 		-moz-appearance: textfield;
@@ -76,11 +89,9 @@
 		background: none !important;
 		box-shadow: none !important;
 		outline: none !important;
-		/* Importante: evita el recuadro azul en Chrome/Android */
-		-webkit-tap-highlight-color: transparent; 
+		-webkit-tap-highlight-color: transparent;
 	}
 
-	/* Quitamos el borde de enfoque (focus ring) */
 	.amount-input:focus,
 	.amount-input:active,
 	.amount-input:focus-visible {
@@ -89,7 +100,6 @@
 		box-shadow: none !important;
 	}
 
-	/* Ocultar las flechas (spinners) */
 	.amount-input::-webkit-outer-spin-button,
 	.amount-input::-webkit-inner-spin-button {
 		-webkit-appearance: none;

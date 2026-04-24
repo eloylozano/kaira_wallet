@@ -4,6 +4,7 @@
 	import SegmentedControl from '$lib/components/ui/SegmentedControl.svelte';
 	import { createCategory, updateCategory } from '$lib/api/categories';
 	import CategoryParentSelector from './CategoryParentSelector.svelte';
+	import GlassInput from '../GlassInput.svelte';
 
 	let { editing = null, onClose } = $props();
 
@@ -44,27 +45,27 @@
 	}
 </script>
 
-<div class="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 pb-32 sm:items-center sm:pb-4">
-    
-    <div
-        class="
-            w-full sm:max-w-xl
+<div
+	class="fixed inset-0 z-[9999] flex items-end justify-center bg-black/60 p-4 pb-32 sm:items-center sm:pb-4"
+>
+	<div
+		class="
+            /* 2.
 
-            bg-white/10
-            border border-white/10
-            backdrop-blur-xl backdrop-saturate-150
+            Redondeado
+            completo para
+            que flote
+            bien
+
+            */ max-h-[75vh] w-full overflow-y-auto rounded-3xl border border-white/10 bg-white/10 p-5
             shadow-2xl
 
-            /* 2. Redondeado completo para que flote bien */
-            rounded-3xl
+            backdrop-blur-xl
+            backdrop-saturate-150
 
-            max-h-[75vh]
-            overflow-y-auto
-
-            p-5
+            sm:max-w-xl
         "
-    >
-		
+	>
 		<!-- HANDLE (solo móvil) -->
 		<div class="mx-auto mb-4 h-1 w-12 rounded-full bg-white/20 sm:hidden"></div>
 
@@ -74,24 +75,8 @@
 
 		<!-- INPUT -->
 		<div class="mb-4">
-			<label class="text-[10px] font-bold tracking-widest uppercase opacity-60">
-				Nombre
-			</label>
 
-			<input
-				bind:value={name}
-				placeholder="Ej: Comida, Sueldo..."
-				class="
-					mt-1 w-full
-					rounded-2xl
-					bg-white/5
-					px-4 py-3
-					text-sm font-semibold
-					outline-none
-					transition
-					focus:bg-white/10
-				"
-			/>
+			<GlassInput label="Nombre" placeholder="Ej: Comida, Sueldo..." bind:value={name} />
 		</div>
 
 		<!-- TYPE -->
@@ -110,9 +95,7 @@
 
 		<!-- PARENT -->
 		<div class="mb-5">
-			<p class="mb-2 text-[10px] font-bold uppercase opacity-60">
-				Categoría padre (opcional)
-			</p>
+			<p class="mb-2 text-[10px] font-bold uppercase opacity-60">Categoría padre (opcional)</p>
 
 			<CategoryParentSelector bind:selected={parentId} />
 		</div>
@@ -126,20 +109,13 @@
 
 		<!-- ACTIONS -->
 		<div class="flex gap-2 pb-2">
-			<button
-				onclick={cancel}
-				class="flex-1 rounded-xl bg-white/5 py-3 text-sm font-bold"
-			>
+			<button onclick={cancel} class="flex-1 rounded-xl bg-white/5 py-3 text-sm font-bold">
 				Cancelar
 			</button>
 
-			<button
-				onclick={save}
-				class="flex-1 rounded-xl bg-primary py-3 text-sm font-bold text-white"
-			>
+			<button onclick={save} class="flex-1 rounded-xl bg-primary py-3 text-sm font-bold text-white">
 				Guardar
 			</button>
 		</div>
-
 	</div>
 </div>
