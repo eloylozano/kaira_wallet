@@ -1,7 +1,4 @@
-// src/lib/data/settings.data.ts
-
 import { goto } from '$app/navigation';
-import { auth } from '$lib/stores/auth';
 
 export type SettingItem =
 	| {
@@ -10,6 +7,10 @@ export type SettingItem =
 			btnText?: string;
 			variant?: 'normal' | 'danger';
 			action: () => void;
+	  }
+	| {
+			type: 'budget';
+			label: string;
 	  }
 	| {
 			type: 'toggle';
@@ -29,66 +30,79 @@ const haptic = () => {
 	}
 };
 
-export const getSettingsSections = (
+export function getSettingsSections(
 	useHaptics: boolean,
 	setPinModal: (v: boolean) => void,
 	setLockModal: (v: boolean) => void,
 	setDeleteModal: (v: boolean) => void
-): SettingsSection[] => [
-	{
-		name: 'Seguridad',
-		items: [
-			{
-				label: 'PIN de acceso',
-				type: 'action',
-				btnText: 'Cambiar',
-				action: () => {
-					setPinModal(true);
-					if (useHaptics) haptic();
+): SettingsSection[] {
+	return [
+		{
+			name: 'Seguridad',
+			items: [
+				{
+					type: 'action',
+					label: 'PIN de acceso',
+					btnText: 'Cambiar',
+					action: () => {
+						setPinModal(true);
+						if (useHaptics) haptic();
+					}
+				},
+				{
+					type: 'action',
+					label: 'Bloquear sesión',
+					btnText: 'Bloquear',
+					variant: 'danger',
+					action: () => {
+						setLockModal(true);
+						if (useHaptics) haptic();
+					}
 				}
-			},
-			{
-				label: 'Bloquear sesión',
-				type: 'action',
-				variant: 'danger',
-				btnText: 'Bloquear',
-				action: () => {
-					setLockModal(true);
-					if (useHaptics) haptic();
+			]
+		},
+
+		{
+			name: 'Finanzas',
+			items: [
+				{
+					type: 'budget',
+					label: 'Presupuesto mensual'
 				}
-			}
-		]
-	},
-	{
-		name: 'Datos',
-		items: [
-			{
-				label: 'Configurar categorías',
-				type: 'action',
-				btnText: 'Configurar',
-				action: () => {
-					goto('/categories');
-					if (useHaptics) haptic();
+			]
+		},
+
+		{
+			name: 'Datos',
+			items: [
+				{
+					type: 'action',
+					label: 'Configurar categorías',
+					btnText: 'Configurar',
+					action: () => {
+						goto('/categories');
+						if (useHaptics) haptic();
+					}
+				},
+				{
+					type: 'action',
+					label: 'Exportar historial (CSV)',
+					btnText: 'Exportar',
+					action: () => {
+						if (useHaptics) haptic();
+					}
+				},
+				{
+					type: 'action',
+					label: 'Borrar todos los gastos',
+					btnText: 'Borrar todo',
+					variant: 'danger',
+					action: () => {
+						setDeleteModal(true);
+						if (useHaptics) haptic();
+					}
 				}
-			},
-			{
-				label: 'Exportar historial (CSV)',
-				type: 'action',
-				btnText: 'Exportar',
-				action: () => {
-					if (useHaptics) haptic();
-				}
-			},
-			{
-				label: 'Borrar todos los gastos',
-				type: 'action',
-				variant: 'danger',
-				btnText: 'Borrar todo',
-				action: () => {
-					setDeleteModal(true);
-					if (useHaptics) haptic();
-				}
-			}
-		]
-	}
-];
+			]
+		}
+	];
+}

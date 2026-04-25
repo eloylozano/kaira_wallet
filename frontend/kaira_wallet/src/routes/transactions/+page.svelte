@@ -1,13 +1,11 @@
 <script lang="ts">
-	import SearchBar from '$lib/components/ui/control/SearchBar.svelte';
-	import FilterBar from '$lib/components/ui/control/FilterBar.svelte';
-	import SortBar from '$lib/components/ui/control/SortBar.svelte';
+	import FilterBar from '$lib/components/ui/FilterBar.svelte';
+	import PaginationBar from '$lib/components/ui/PaginationBar.svelte';
+	import SearchBar from '$lib/components/ui/SearchBar.svelte';
+	import SegmentedControl from '$lib/components/ui/SegmentedControl.svelte';
 	import TransactionItem from '$lib/components/ui/TransactionItem.svelte';
-	import PaginationBar from '$lib/components/ui/control/PaginationBar.svelte';
-
 	import { transactionsStore } from '$lib/stores/transactions.svelte';
 	import { groupByMonth } from '$lib/utils/groupByMonth';
-	import SegmentedControl from '$lib/components/ui/control/SegmentedControl.svelte';
 
 	let search = $state('');
 	let type = $state('');
@@ -43,7 +41,6 @@
 	});
 	let grouped = $derived.by(() => {
 		let list = [...transactionsStore.all];
-
 
 		// SORT
 		list.sort((a, b) => {

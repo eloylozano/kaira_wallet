@@ -1,50 +1,70 @@
 <script lang="ts">
-	import HomeHeader from '$lib/components/home/HomeHeader.svelte';
-	import BalanceCard from '$lib/components/home/BalanceCard.svelte';
-	import { transactionsStore } from '$lib/stores/transactions.svelte';
-	import { onMount } from 'svelte';
+    import HomeHeader from '$lib/components/home/HomeHeader.svelte';
+    import BalanceCard from '$lib/components/home/BalanceCard.svelte';
+    import HomeChart from '$lib/components/charts/HomeChart.svelte';
+    import BudgetProgress from '$lib/components/home/BudgetProgress.svelte';
+    import TransactionItem from '$lib/components/ui/TransactionItem.svelte';
+    
+    import { transactionsStore } from '$lib/stores/transactions.svelte';
+    import { statsService } from '$lib/stores/stats.svelte';
+    import { onMount } from 'svelte';
+    import { goto } from '$app/navigation';
 
-	import HomeChart from '$lib/components/charts/HomeChart.svelte';
-	import BudgetProgress from '$lib/components/home/BudgetProgress.svelte';
-	import RecentTransactions from '$lib/components/ui/RecentTransactions.svelte';
+    let monthlyBudget = 350;
 
-	let monthlyBudget = 350;
+    // Cargamos datos al montar el componente
+    onMount(() => {
+        // Pedimos los últimos movimientos para la lista
+        transactionsStore.fetch({
+            limit: 50,
+            sort: 'desc'
+        });
+        
+        // Sincronizamos el mes actual en el servicio de stats
+        const now = new Date();
+        statsService.selectedMonth = now.getMonth();
+        statsService.selectedYear = now.getFullYear();
+        statsService.fetchMonthlyStats();
+    });
 
-	onMount(() => {
-		transactionsStore.fetch({
-			limit: 50,
-			sort: 'desc'
-		});
-	});
-
-	let thisMonthExpenses = $derived(() => {
-		const now = new Date();
-		const m = now.getMonth();
-		const y = now.getFullYear();
-
-		return transactionsStore.all.filter((t) => {
-			const d = new Date(t.date);
-			return t.type === 'expense' &&
-				d.getMonth() === m &&
-				d.getFullYear() === y;
-		});
-	});
-
-	let spentThisMonth = $derived(() =>
-		thisMonthExpenses().reduce((acc, t) => acc + Number(t.amount || 0), 0)
-	);
+    let lastFive = $derived(transactionsStore.all.slice(0, 5));
 </script>
 
 <div class="mx-auto max-w-xl pb-24">
-	<HomeHeader />
-	<BalanceCard />
-	<BudgetProgress
-		budget={monthlyBudget}
-		spent={spentThisMonth()}
-	/>
+    <HomeHeader />
+    <BalanceCard />
+    
+    <BudgetProgress
+        budget={monthlyBudget}
+        spent={statsService.monthlyStatsData.expense}
+    />
 
-	<HomeChart />
+    <HomeChart />
 
+    <div class="mt-8">
+        <div class="mb-3 flex items-center justify-between">
+            <h2 class="text-[10px] font-black tracking-widest uppercase opacity-60">
+                Últimos movimientos
+            </h2>
+            <button
+                onclick={() => goto('/transactions')}
+                class="kaira-chip rounded-xl px-4 py-2 text-[10px] font-bold uppercase transition-all hover:opacity-80 active:scale-95"
+            >
+                Ver todo
+            </button>
+        </div>
 
-	<RecentTransactions />
+        <div class="space-y-3">
+            {#each lastFive as tx (tx.id)}
+                <button
+                    onclick={() => goto(`/transactions/${tx.id}`)}
+                    class="w-full text-left transition-transform active:scale-[0.98]"
+                >
+                    <TransactionItem {tx} />
+                </button>
+            {:else}
+                <p class="py-4 text-center text-[10px] uppercase opacity-30">Cargando movimientos...</p>
+            {/each}
+        </div>
+    </div>
 </div>

@@ -35,23 +35,16 @@
 		return `rgb(${r}, ${g}, ${b})`;
 	}
 </script>
-
 <div
     class="relative isolate flex w-full overflow-hidden rounded-2xl border border-[color:var(--glass-border)] p-1 bg-white/5"
 >
     <div
         class="absolute top-1 bottom-1 z-0 rounded-xl transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)]"
         style="
-            /* El ancho es el 100% dividido por opciones, restando el padding interno */
             width: calc((100% - 8px) / {options.length}); 
-            
-            /* Usamos transform para una animación más suave y precisa */
             transform: translateX(calc({activeIndex} * 100%));
-            
             background: {darken(activeColor)};
             box-shadow: 0 8px 24px {activeColor}40;
-            
-             
         "
     ></div>
 
@@ -62,7 +55,11 @@
                 selected = opt.value;
                 vibrate();
             }}
-            class="relative z-10 flex flex-1 items-center justify-center py-3 text-[10px] font-black tracking-widest uppercase transition-colors duration-300
+            class="relative z-10 flex flex-1 items-center justify-center 
+                   py-2.5 sm:py-3 
+                   text-[8px] sm:text-[10px] 
+                   font-black tracking-[0.1em] sm:tracking-widest 
+                   uppercase transition-colors duration-300
             {selected === opt.value
                 ? 'text-[color:var(--text-main)]'
                 : 'text-[color:var(--text-soft)] hover:text-[color:var(--text-muted)]'}"
@@ -73,11 +70,7 @@
 </div>
 
 <style>
-	button {
-		-webkit-tap-highlight-color: transparent;
-	}
-
-	.kaira-segment-inactive {
-		color: var(--text-soft);
-	}
+    button {
+        -webkit-tap-highlight-color: transparent;
+    }
 </style>

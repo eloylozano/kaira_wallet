@@ -169,6 +169,4 @@ export const transactionsStore = {
 
 	}
 
-
-	// D
 };
