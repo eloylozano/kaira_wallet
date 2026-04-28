@@ -1,5 +1,5 @@
 import { browser } from '$app/environment';
-import { PUBLIC_API_URL, PUBLIC_KAIRA_PIN } from '$env/static/public';
+import { apiUrl, KAIRA_PIN } from '$lib/config/api';
 
 export interface Category {
 	id: number;
@@ -33,17 +33,14 @@ export const categoriesStore = {
 	},
 
 	async refresh() {
-		if (!PUBLIC_API_URL) return;
-
-		const baseUrl = PUBLIC_API_URL.replace(/\/$/, '');
-		const url = `${baseUrl}/categories/`;
+		const url = apiUrl('/categories/');
 
 		try {
 			const res = await fetch(url, {
 				method: 'GET',
 				headers: {
 					'Accept': 'application/json',
-					'X-Kaira-PIN': PUBLIC_KAIRA_PIN
+					'X-Kaira-PIN': KAIRA_PIN
 				}
 			});
 

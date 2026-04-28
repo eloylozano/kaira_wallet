@@ -1,4 +1,4 @@
-import { PUBLIC_API_URL, PUBLIC_KAIRA_PIN } from '$env/static/public';
+import { apiUrl, KAIRA_PIN } from '$lib/config/api';
 import { transactionsStore } from '$lib/stores/transactions.svelte';
 
 class StatsService {
@@ -19,16 +19,16 @@ class StatsService {
 		try {
 			const [statsRes, breakdownRes] = await Promise.all([
 				fetch(
-					`${PUBLIC_API_URL}/stats/monthly?year=${this.selectedYear}&month=${this.selectedMonth}`,
+					apiUrl(`/stats/monthly?year=${this.selectedYear}&month=${this.selectedMonth}`),
 					{
-						headers: { 'X-Kaira-PIN': PUBLIC_KAIRA_PIN }
+						headers: { 'X-Kaira-PIN': KAIRA_PIN }
 					}
 				),
 
 				fetch(
-					`${PUBLIC_API_URL}/stats/monthly-breakdown?year=${this.selectedYear}`,
+					apiUrl(`/stats/monthly-breakdown?year=${this.selectedYear}`),
 					{
-						headers: { 'X-Kaira-PIN': PUBLIC_KAIRA_PIN }
+						headers: { 'X-Kaira-PIN': KAIRA_PIN }
 					}
 				)
 			]);

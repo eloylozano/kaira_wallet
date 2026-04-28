@@ -1,4 +1,4 @@
-import { PUBLIC_API_URL, PUBLIC_KAIRA_PIN } from '$env/static/public';
+import { apiUrl, KAIRA_PIN } from '$lib/config/api';
 
 export type TransactionType =
 	| 'expense'
@@ -23,13 +23,13 @@ export interface TransactionPayload {
 function headers() {
 	return {
 		'Content-Type': 'application/json',
-		'X-Kaira-PIN': PUBLIC_KAIRA_PIN
+		'X-Kaira-PIN': KAIRA_PIN
 	};
 }
 
 function authHeaders() {
 	return {
-		'X-Kaira-PIN': PUBLIC_KAIRA_PIN
+		'X-Kaira-PIN': KAIRA_PIN
 	};
 }
 
@@ -42,7 +42,7 @@ export async function getTransaction(
 	id: number
 ) {
 	const res = await fetch(
-		`${PUBLIC_API_URL}/transactions/${id}`,
+		apiUrl(`/transactions/${id}`),
 		{
 			headers: authHeaders()
 		}
@@ -67,7 +67,7 @@ export async function updateTransaction(
 	payload: TransactionPayload
 ) {
 	const res = await fetch(
-		`${PUBLIC_API_URL}/transactions/${id}`,
+		apiUrl(`/transactions/${id}`),
 		{
 			method: 'PUT',
 			headers: headers(),
@@ -93,7 +93,7 @@ export async function deleteTransaction(
 	id: number
 ) {
 	const res = await fetch(
-		`${PUBLIC_API_URL}/transactions/${id}`,
+		apiUrl(`/transactions/${id}`),
 		{
 			method: 'DELETE',
 			headers: authHeaders()
@@ -119,7 +119,7 @@ export async function createTransaction(
 	payload: TransactionPayload
 ) {
 	const res = await fetch(
-		`${PUBLIC_API_URL}/transactions`,
+		apiUrl('/transactions'),
 		{
 			method: 'POST',
 			headers: headers(),

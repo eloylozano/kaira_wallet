@@ -10,7 +10,7 @@ services:
       POSTGRES_PASSWORD: pass
       POSTGRES_DB: kaira_wallet
     ports:
-      - "5433:5432"
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -36,6 +36,22 @@ services:
       db:
         condition: service_healthy
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  frontend:
+    build:
+      context: ./frontend/kaira_wallet
+      dockerfile: Dockerfile
+    container_name: kaira_wallet_frontend
+    restart: unless-stopped
+    volumes:
+      - ./frontend/kaira_wallet:/app
+      - /app/node_modules
+    ports:
+      - "5174:5173"
+    env_file:
+      - ./frontend/kaira_wallet/.env
+    depends_on:
+      - backend
 
 volumes:
   postgres_data:

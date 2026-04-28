@@ -1,4 +1,4 @@
-import { PUBLIC_API_URL, PUBLIC_KAIRA_PIN } from '$env/static/public';
+import { apiUrl, getApiBaseUrl, KAIRA_PIN } from '$lib/config/api';
 
 let _transactions = $state<any[]>([]);
 let _total = $state(0);
@@ -26,13 +26,13 @@ export const transactionsStore = {
 		if (local) return local;
 
 		try {
-			const baseUrl = PUBLIC_API_URL.replace(/\/$/, '');
+			const baseUrl = getApiBaseUrl();
 
 			const res = await fetch(
 				`${baseUrl}/transactions/${id}`,
 				{
 					headers: {
-						'X-Kaira-PIN': PUBLIC_KAIRA_PIN
+						'X-Kaira-PIN': KAIRA_PIN
 					}
 				}
 			);
@@ -51,8 +51,8 @@ export const transactionsStore = {
 	// Dentro de transactionsStore
 	async getGlobalStats() {
 		try {
-			const res = await fetch(`${PUBLIC_API_URL}/stats/`, {
-				headers: { 'X-Kaira-PIN': PUBLIC_KAIRA_PIN }
+			const res = await fetch(apiUrl('/stats/'), {
+				headers: { 'X-Kaira-PIN': KAIRA_PIN }
 			});
 			if (res.ok) {
 				return await res.json(); // Esto devuelve total_income, total_expense, etc.
@@ -65,7 +65,7 @@ export const transactionsStore = {
 	
 	async update(id: number, payload: any) {
 		try {
-			const baseUrl = PUBLIC_API_URL.replace(/\/$/, '');
+			const baseUrl = getApiBaseUrl();
 
 			const res = await fetch(
 				`${baseUrl}/transactions/${id}`,
@@ -73,7 +73,7 @@ export const transactionsStore = {
 					method: 'PUT',
 					headers: {
 						'Content-Type': 'application/json',
-						'X-Kaira-PIN': PUBLIC_KAIRA_PIN
+						'X-Kaira-PIN': KAIRA_PIN
 					},
 					body: JSON.stringify(payload)
 				}
@@ -106,7 +106,7 @@ export const transactionsStore = {
 		sort?: 'asc' | 'desc';
 	}) {
 
-		const baseUrl = PUBLIC_API_URL.replace(/\/$/, '');
+		const baseUrl = getApiBaseUrl();
 
 		const query = new URLSearchParams();
 
@@ -138,7 +138,7 @@ export const transactionsStore = {
 					`${baseUrl}/transactions/?${query}`,
 					{
 						headers: {
-							'X-Kaira-PIN': PUBLIC_KAIRA_PIN
+							'X-Kaira-PIN': KAIRA_PIN
 						}
 					}
 				),
@@ -147,7 +147,7 @@ export const transactionsStore = {
 					`${baseUrl}/transactions/count?${countQuery}`,
 					{
 						headers: {
-							'X-Kaira-PIN': PUBLIC_KAIRA_PIN
+							'X-Kaira-PIN': KAIRA_PIN
 						}
 					}
 				)

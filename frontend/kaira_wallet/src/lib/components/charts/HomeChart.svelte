@@ -1,6 +1,6 @@
 <script lang="ts">
     import ExpenseChart from '$lib/components/charts/ExpenseChart.svelte';
-    import { PUBLIC_API_URL, PUBLIC_KAIRA_PIN } from '$env/static/public';
+    import { apiUrl, KAIRA_PIN } from '$lib/config/api';
 
     let dailyExpenses = $state<Record<string, number>>({});
 
@@ -34,8 +34,8 @@
     });
 
     $effect(() => {
-        fetch(`${PUBLIC_API_URL}/stats/daily-expenses`, {
-            headers: { 'X-Kaira-PIN': PUBLIC_KAIRA_PIN }
+        fetch(apiUrl('/stats/daily-expenses'), {
+            headers: { 'X-Kaira-PIN': KAIRA_PIN }
         })
             .then(r => r.json())
             .then(data => dailyExpenses = data || {})

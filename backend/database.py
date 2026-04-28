@@ -8,18 +8,25 @@ from urllib.parse import quote_plus
 
 load_dotenv()
 
-# Obtener variables de entorno
-db_user = os.getenv("DB_USER", "user")
-db_password = os.getenv("DB_PASSWORD", "pass")
-db_host = os.getenv("DB_HOST", "localhost")
-db_port = os.getenv("DB_PORT", "5433")
-db_name = os.getenv("DB_NAME", "kaira_wallet")
+# Primero verificar si DATABASE_URL está definida (desde Docker)
+# Si no, construir desde las variables individuales
+database_url_from_env = os.getenv("DATABASE_URL")
 
-# Encoding de caracteres especiales en contraseña
-db_password_encoded = quote_plus(db_password)
+if database_url_from_env:
+    DATABASE_URL = database_url_from_env
+else:
+    # Obtener variables de entorno para desarrollo local
+    db_user = os.getenv("DB_USER", "user")
+    db_password = os.getenv("DB_PASSWORD", "pass")
+    db_host = os.getenv("DB_HOST", "localhost")
+    db_port = os.getenv("DB_PORT", "5433")
+    db_name = os.getenv("DB_NAME", "kaira_wallet")
 
-# Construir URL con encoding adecuado
-DATABASE_URL = f"postgresql://{db_user}:{db_password_encoded}@{db_host}:{db_port}/{db_name}"
+    # Encoding de caracteres especiales en contraseña
+    db_password_encoded = quote_plus(db_password)
+
+    # Construir URL con encoding adecuado
+    DATABASE_URL = f"postgresql://{db_user}:{db_password_encoded}@{db_host}:{db_port}/{db_name}"
 
 # Configurar opciones de conexión
 connect_args = {"check_same_thread": False} if "sqlite" in DATABASE_URL else {}

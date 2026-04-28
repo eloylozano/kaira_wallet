@@ -1,15 +1,15 @@
-import { PUBLIC_API_URL, PUBLIC_KAIRA_PIN } from '$env/static/public';
+import { apiUrl, KAIRA_PIN } from '$lib/config/api';
 
 function headers() {
 	return {
 		'Content-Type': 'application/json',
-		'X-Kaira-PIN': PUBLIC_KAIRA_PIN
+		'X-Kaira-PIN': KAIRA_PIN
 	};
 }
 
 // 🟢 CREATE
 export async function createCategory(data: any) {
-	const res = await fetch(`${PUBLIC_API_URL}/categories/`, {
+	const res = await fetch(apiUrl('/categories/'), {
 		method: 'POST',
 		headers: headers(),
 		body: JSON.stringify(data)
@@ -24,7 +24,7 @@ export async function createCategory(data: any) {
 
 // 🟡 UPDATE (PUT explícito)
 export async function updateCategory(id: number, data: any) {
-	const res = await fetch(`${PUBLIC_API_URL}/categories/${id}`, {
+	const res = await fetch(apiUrl(`/categories/${id}`), {
 		method: 'PUT',
 		headers: headers(),
 		body: JSON.stringify(data)
@@ -39,10 +39,10 @@ export async function updateCategory(id: number, data: any) {
 
 // 🔴 DELETE
 export async function deleteCategory(id: number) {
-	const res = await fetch(`${PUBLIC_API_URL}/categories/${id}`, {
+	const res = await fetch(apiUrl(`/categories/${id}`), {
 		method: 'DELETE',
 		headers: {
-			'X-Kaira-PIN': PUBLIC_KAIRA_PIN
+			'X-Kaira-PIN': KAIRA_PIN
 		}
 	});
 

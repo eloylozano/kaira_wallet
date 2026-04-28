@@ -31,7 +31,7 @@ app.add_middleware(
 
 # --- CONFIGURACIÓN DE SEGURIDAD ---
 ACCESS_PIN = "8061" 
-EXEMPT_PATHS = ["/health", "/docs", "/openapi.json", "/redoc", "/favicon.ico"]
+EXEMPT_PATHS = ["/health", "/docs", "/openapi.json", "/redoc", "/favicon.ico", "/docs/oauth2-redirect"]
 def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema
