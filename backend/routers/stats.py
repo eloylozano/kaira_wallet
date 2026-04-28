@@ -160,3 +160,72 @@ def get_monthly_breakdown(year: int, db: Session = Depends(get_db)):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+    
+# main.py
+
+@router.get("/expense-structure")
+def get_expense_structure(month: int, year: int, db: Session = Depends(get_db)):
+    # Filtramos SOLO pagadas para que la suma sea coherente
+    transactions = db.query(models.Transaction).filter(
+        models.Transaction.user_id == USER_ID_MOCK,
+        models.Transaction.type == models.TransactionType.expense,
+        models.Transaction.is_paid == True, # <--- IMPORTANTE
+        extract('month', models.Transaction.date) == month,
+        extract('year', models.Transaction.date) == year
+    ).all()
+
+    fixed_total = sum(t.amount for t in transactions if t.frequency == models.FrequencyType.fixed)
+    variable_total = sum(t.amount for t in transactions if t.frequency == models.FrequencyType.variable)
+    
+    # El total DEBE ser la suma de estos dos
+    total = fixed_total + variable_total 
+
+    return {
+        "fixed_total": float(fixed_total),
+        "variable_total": float(variable_total),
+        "total_expense": float(total), # Enviamos el total coherente
+        "fixed_ratio": (fixed_total / total * 100) if total > 0 else 0
+    }
+    
+@router.get("/monthly-boxes")
+def get_monthly_boxes(year: int, month: int, db: Session = Depends(get_db)):
+
+    try:
+        sql_month = month  # ya viene 1-12 desde frontend
+
+        # Traemos todo el mes en una sola query
+        transactions = db.query(models.Transaction).filter(
+            models.Transaction.user_id == USER_ID_MOCK,
+            extract("year", models.Transaction.date) == year,
+            extract("month", models.Transaction.date) == sql_month,
+            models.Transaction.is_paid == True  # 🔥 IMPORTANTE
+        ).all()
+
+        income = 0
+        expense = 0
+        invest = 0
+
+        for t in transactions:
+            amount = float(t.amount)
+
+            if t.type == models.TransactionType.income:
+                income += amount
+            elif t.type == models.TransactionType.expense:
+                expense += amount
+            elif t.type == models.TransactionType.invest:
+                invest += amount
+
+        savings = income - expense - invest
+        net = income - expense
+
+        return {
+            "income": income,
+            "expense": expense,
+            "invest": invest,
+            "savings": savings,
+            "net": net
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
