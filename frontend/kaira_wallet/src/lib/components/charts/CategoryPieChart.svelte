@@ -3,10 +3,9 @@
 	import * as echarts from 'echarts';
 	import { statsService } from '$lib/stores/stats.svelte';
 
-	let chartEl: HTMLDivElement;
-	let chart: echarts.ECharts;
+	let chartEl: HTMLDivElement | null = null;
+	let chart: echarts.ECharts | null = null;
 
-	// Colores Kaira consistentes para el gráfico y la leyenda manual
 	const kairaPalette = [
 		'#f43f5e',
 		'#10b981',
@@ -28,16 +27,28 @@
 	);
 
 	onMount(() => {
-		chart = echarts.init(chartEl);
 		window.addEventListener('resize', () => chart?.resize());
+
+		return () => {
+			chart?.dispose();
+		};
 	});
 
 	$effect(() => {
-		if (categories().length > 0) updateChart();
+        // 👇 clave: esperar a que exista el DOM
+		if (!chartEl || categories().length === 0) return;
+		// 👇 init solo una vez
+		if (!chart) {
+			chart = echarts.init(chartEl!);
+		}
+        
+
+		updateChart();
 	});
 
 	function updateChart() {
 		if (!chart) return;
+
 		chart.setOption({
 			backgroundColor: 'transparent',
 			color: kairaPalette,
@@ -55,10 +66,20 @@
 					radius: ['65%', '85%'],
 					avoidLabelOverlap: true,
 					padAngle: 1,
-					itemStyle: { borderRadius: 8, borderColor: 'transparent', borderWidth: 2 },
-					label: { show: false, position: 'center' },
+					itemStyle: {
+						borderRadius: 8,
+						borderColor: 'transparent',
+						borderWidth: 2
+					},
+					label: { show: false },
 					emphasis: {
-						label: { show: true, fontSize: 14, fontWeight: '900', color: '#fff', formatter: '{d}%' }
+						label: {
+							show: true,
+							fontSize: 14,
+							fontWeight: '900',
+							color: '#fff',
+							formatter: '{d}%'
+						}
 					},
 					data: categories()
 				}

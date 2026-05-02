@@ -32,30 +32,13 @@
 
 	{#if subView === 'gastos'}
 		<div class="animate-in fade-in slide-in-from-bottom-2 space-y-8 duration-500">
-			<section>
-				
-				<CategoryPieChart />
-			</section>
+			<CategoryPieChart />
 
-			<section>
-				<ParetoChart />
-			</section>
+			<ParetoChart />
 		</div>
 	{:else}
 		<div class="animate-in fade-in slide-in-from-bottom-2 space-y-8 duration-500">
-			<section>
-				<h2 class="mb-4 px-4 text-[10px] font-black tracking-[0.2em] uppercase opacity-40">
-					Liquidez vs Inversión
-				</h2>
-				<CashRatioChart />
-			</section>
-
-			<section>
-				<h2 class="mb-4 px-4 text-[10px] font-black tracking-[0.2em] uppercase opacity-40">
-					Asset Allocation
-				</h2>
-				<InvestmentMixChart />
-			</section>
+			<InvestmentMixChart />
 		</div>
 	{/if}
 </div>
