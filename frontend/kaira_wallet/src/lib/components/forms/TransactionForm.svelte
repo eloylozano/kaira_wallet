@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
 
+	import { categoriesStore } from '$lib/stores/categories.svelte';
 	import { transactionsStore } from '$lib/stores/transactions.svelte';
 	import { createTransaction, updateTransaction } from '$lib/api/transactions';
 	import AmountInput from '../ui/AmountInput.svelte';
@@ -31,10 +33,7 @@
 		initial?: Transaction | null;
 	};
 
-	let { mode = 'create', id = null, initial = null } = $props<Props>();
-
-	// 🔥 IMPORTANTE: snapshot estable
-	const tx = $derived(initial);
+	let { mode = 'create', id = null, initial = null }: Props = $props();
 
 	// ---------------- STATE ----------------
 	let saving = $state(false);
@@ -47,17 +46,31 @@
 	let frequency = $state<FrequencyType>('variable');
 	let paidState = $state<PaidState>('paid');
 
+	onMount(() => {
+		categoriesStore.refresh();
+	});
+
 	// ---------------- INIT (FIABLE) ----------------
+	// ---------------- INIT (CORREGIDO) ----------------
 	$effect(() => {
-		if (mode !== 'edit') return;
-		if (!tx) return;
-		amount = initial?.amount != null ? String(initial.amount) : '';
-		description = tx.description ?? '';
-		type = tx.type ?? 'expense';
-		date = new Date(tx.date).toISOString().split('T')[0];
-		selectedCategoryId = tx.category_id ?? null;
-		frequency = tx.frequency ?? 'variable';
-		paidState = tx.is_paid ? 'paid' : 'pending';
+		// Si no hay datos iniciales (estamos creando), no hacemos nada
+		if (mode !== 'edit' || !initial) return;
+
+		// Rellenamos los estados con los datos de la transacción
+		amount = initial.amount != null ? String(initial.amount) : '';
+		description = initial.description ?? '';
+		type = initial.type ?? 'expense';
+
+		// Formateo de fecha seguro
+		if (initial.date) {
+			date = new Date(initial.date).toISOString().split('T')[0];
+		}
+
+		// ESTO ES CLAVE: Sincronizar el ID de categoría
+		selectedCategoryId = initial.category_id ?? null;
+
+		frequency = initial.frequency ?? 'variable';
+		paidState = initial.is_paid ? 'paid' : 'pending';
 	});
 
 	// ---------------- SUBMIT ----------------
@@ -99,7 +112,7 @@
 		options={[
 			{ value: 'expense', label: 'Gastos', color: '#ef4444' },
 			{ value: 'income', label: 'Ingresos' },
-			{ value: 'invest', label: 'Inversión', color: '#3b82f6' }
+			{ value: 'invest', label: 'Inversión', color: '#00a6f4' }
 		]}
 	/>
 

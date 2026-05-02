@@ -23,7 +23,7 @@
     });
 </script>
 
-<div class="mx-auto flex w-full max-w-xl flex-col gap-6 pt-10 pb-32 px-4">
+<div class="mx-auto flex w-full max-w-xl flex-col gap-6 pt-10 pb-24 px-4">
     <header class="flex flex-col gap-4">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div class="flex min-w-0 flex-col">

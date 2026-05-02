@@ -65,7 +65,7 @@
         <div class="mt-4 flex justify-between text-[8px] font-bold uppercase tracking-widest opacity-30">
             <span>Gastos</span>
             <span>Inversión</span>
-            <span>Ahorro</span>
+            <span>Efectivo</span>
         </div>
     </div>
 </div>

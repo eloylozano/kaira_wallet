@@ -3,7 +3,7 @@
 	import { categoriesStore } from '$lib/stores/categories.svelte';
 	import CategoryList from '$lib/components/ui/categories/CategoryList.svelte';
 	import CategoryModal from '$lib/components/ui/categories/CategoryModal.svelte';
-	import SegmentedControl from '$lib/components/ui/control/SegmentedControl.svelte';
+	import SegmentedControl from '$lib/components/ui/SegmentedControl.svelte';
 
 	let isOpen = $state(false);
 	let editing = $state(null);
@@ -58,7 +58,7 @@
 		options={[
 			{ value: 'all', label: 'Todo' },
 			{ value: 'income', label: 'Ingresos', color: '#10b981' },
-			{ value: 'invest', label: 'Inversión', color: '#3b82f6' },
+			{ value: 'invest', label: 'Inversión', color: '#00a6f4' },
 			{ value: 'expense', label: 'Gastos', color: '#ef4444' }
 		]}
 	/>

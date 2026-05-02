@@ -10,5 +10,5 @@ export const transactionTypeBadge: Record<
 > = {
 	expense: { label: 'Gasto', color: '#ef4444' },
 	income: { label: 'Ingreso', color: '#22c55e' },
-	invest: { label: 'Inversión', color: '#3b82f6' }
+	invest: { label: 'Inversión', color: '#00a6f4' }
 };

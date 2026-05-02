@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { categoriesStore } from '$lib/stores/categories.svelte';
 	import IconPicker from './IconPicker.svelte';
-	import SegmentedControl from '$lib/components/ui/control/SegmentedControl.svelte';
-	import { createCategory, updateCategory } from '$lib/api/categories';
 	import CategoryParentSelector from './CategoryParentSelector.svelte';
-	import GlassInput from '../GlassInput.svelte';
+	import { updateCategory, createCategory } from '$lib/api/categories';
+	import GlassInput from '../core/GlassInput.svelte';
+	import SegmentedControl from '../SegmentedControl.svelte';
 
 	let { editing = null, onClose } = $props();
 
@@ -17,7 +17,7 @@
 	const types = [
 		{ value: 'expense', label: 'Gastos', color: '#f43f5e' },
 		{ value: 'income', label: 'Ingresos', color: '#10b981' },
-		{ value: 'invest', label: 'Inversión', color: '#3b82f6' }
+		{ value: 'invest', label: 'Inversión', color: '#00a6f4' }
 	];
 
 	// SOLO categorías padre (evitas anidar infinito)
@@ -88,7 +88,7 @@
 				options={[
 					{ value: 'expense', label: 'Gastos', color: '#f43f5e' },
 					{ value: 'income', label: 'Ingresos', color: '#10b981' },
-					{ value: 'invest', label: 'Inversión', color: '#3b82f6' }
+					{ value: 'invest', label: 'Inversión', color: '#00a6f4' }
 				]}
 			/>
 		</div>

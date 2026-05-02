@@ -43,7 +43,7 @@
 	const typeStyle = {
 		expense: { color: '#ef4444', bg: 'rgba(239,68,68,0.12)' },
 		income: { color: '#22c55e', bg: 'rgba(34,197,94,0.12)' },
-		invest: { color: '#3b82f6', bg: 'rgba(59,130,246,0.12)' }
+		invest: { color: '#00a6f4', bg: 'rgba(59,130,246,0.12)' }
 	};
 
 	const style = $derived(typeStyle[cat.transaction_type] ?? typeStyle.expense);

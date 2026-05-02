@@ -85,6 +85,7 @@ export const iconGroups = {
 		'cloud',
 		'smile',
         'wrench',
+		'cat',
         'shirt',
         'trousers',
 	],
