@@ -94,6 +94,34 @@ class StatsService {
         }
         return { current: totalDays, total: totalDays };
     }
+
+
+    distributionData = $state({
+        expenses: [] as any[], // Aquí ahora llegarán objetos tipo {name, value, children}
+        pareto: [] as any[],
+        investments: {
+            cash_ratio: { invested: 0, cash: 0 },
+            allocation: [] as any[]
+        }
+    });
+
+    async fetchDistributionData() {
+        try {
+            const sqlMonth = this.selectedMonth + 1;
+            const [expRes, paretoRes, investRes] = await Promise.all([
+                fetch(apiUrl(`/stats/distribution/expenses?year=${this.selectedYear}&month=${sqlMonth}`), { headers: { 'X-Kaira-PIN': KAIRA_PIN } }),
+                fetch(apiUrl(`/stats/distribution/pareto?year=${this.selectedYear}`), { headers: { 'X-Kaira-PIN': KAIRA_PIN } }),
+                fetch(apiUrl(`/stats/distribution/investments`), { headers: { 'X-Kaira-PIN': KAIRA_PIN } })
+            ]);
+
+            if (expRes.ok) this.distributionData.expenses = await expRes.json();
+            if (paretoRes.ok) this.distributionData.pareto = await paretoRes.json();
+            if (investRes.ok) this.distributionData.investments = await investRes.json();
+
+        } catch (err) {
+            console.error('Error en distribución:', err);
+        }
+    }
 }
 
 export const statsService = new StatsService();
