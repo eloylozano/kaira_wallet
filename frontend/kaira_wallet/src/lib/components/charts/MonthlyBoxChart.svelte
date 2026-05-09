@@ -139,7 +139,7 @@
     <div class="kaira-panel p-6">
         <div class="mb-6 flex items-center justify-between">
             <div>
-                <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-white/20">Flujo de Efectivo</h3>
+                <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-white/20">Ahorro disponible</h3>
                 <p class="text-3xl font-black italic tracking-tighter text-white">
                     {data.savings >= 0 ? '+' : ''}{fmt(data.savings)}
                 </p>
@@ -157,10 +157,6 @@
 </div>
 
 <style>
-    /* 
-       IMPORTANTE: Para Tailwind 4.0+, si usas @apply en <style>, 
-       necesitas añadir @reference para que reconozca las utilidades.
-    */
     @reference "tailwindcss";
 
     .kaira-panel {

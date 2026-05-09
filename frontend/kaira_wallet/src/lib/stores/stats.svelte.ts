@@ -114,17 +114,17 @@ class StatsService {
             }
 
             if (investRes.ok) {
-            const data = await investRes.json();
-            
-            // ✅ Sincronizamos con el nuevo objeto del Backend
-            this.distributionData.investments = {
-                cash_ratio: data.cash_ratio || { cash: 0, invested: 0 },
-                allocation: Array.isArray(data.allocation) ? data.allocation : []
-            };
+                const data = await investRes.json();
+
+                // ✅ Sincronizamos con el nuevo objeto del Backend
+                this.distributionData.investments = {
+                    cash_ratio: data.cash_ratio || { cash: 0, invested: 0 },
+                    allocation: Array.isArray(data.allocation) ? data.allocation : []
+                };
+            }
+        } catch (err) {
+            console.error('Error en distribución:', err);
         }
-    } catch (err) {
-        console.error('Error en distribución:', err);
-    }
     }
 
     // utilidades UI
@@ -169,6 +169,74 @@ class StatsService {
         }
 
         return { current: totalDays, total: totalDays };
+    }
+
+    summaryData = $state({
+        total_income: 0,
+        total_expense: 0,
+        total_invest: 0
+    });
+
+    globalBalance = $state(0);
+
+    // 2. Método para traer ambos datos
+    async fetchHomeData(year: number) {
+        try {
+            const [summaryRes, globalRes] = await Promise.all([
+                fetch(apiUrl(`/stats/summary?year=${year}`), {
+                    headers: { 'X-Kaira-PIN': KAIRA_PIN }
+                }),
+                fetch(apiUrl('/stats/summary'), {
+                    headers: { 'X-Kaira-PIN': KAIRA_PIN }
+                })
+            ]);
+
+            if (summaryRes.ok) {
+                this.summaryData = await summaryRes.json();
+            }
+
+            if (globalRes.ok) {
+                const global = await globalRes.json();
+                this.globalBalance = Number(global.total_income) -
+                    Number(global.total_expense) -
+                    Number(global.total_invest);
+            }
+        } catch (err) {
+            console.error('Error cargando datos del Home:', err);
+        }
+    }
+
+    equityEvolution = $state<any[]>([]);
+    assetTypes = $state<any[]>([]);
+    equityLoading = $state(false);
+
+    // 2. Nuevo método para cargar todo lo referente a Patrimonio
+    async fetchEquityData() {
+        this.equityLoading = true;
+        try {
+            const headers = { 'X-Kaira-PIN': KAIRA_PIN };
+            const [resEvolution, resAssets, resGlobal] = await Promise.all([
+                fetch(apiUrl('/stats/equity/evolution'), { headers }),
+                fetch(apiUrl('/stats/equity/asset-types'), { headers }),
+                fetch(apiUrl('/stats/'), { headers }) // Para los totales generales
+            ]);
+
+            if (resEvolution.ok) this.equityEvolution = await resEvolution.json();
+            if (resAssets.ok) this.assetTypes = await resAssets.json();
+            if (resGlobal.ok) {
+                const global = await resGlobal.json();
+                // Aprovechamos para actualizar summaryData si lo necesitas
+                this.summaryData = {
+                    total_income: global.total_income,
+                    total_expense: global.total_expense,
+                    total_invest: global.total_invest
+                };
+            }
+        } catch (err) {
+            console.error('Error en fetchEquityData:', err);
+        } finally {
+            this.equityLoading = false;
+        }
     }
 }
 

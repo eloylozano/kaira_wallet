@@ -5,6 +5,7 @@
 	import InvestmentMixChart from '../charts/InvestmentMixChart.svelte';
 	import SegmentedControl from '$lib/components/ui/SegmentedControl.svelte';
 	import { statsService } from '$lib/stores/stats.svelte';
+	import * as echarts from 'echarts';
 	import { onMount } from 'svelte';
 
 	let subView = $state('gastos'); // 'gastos' | 'inversiones'

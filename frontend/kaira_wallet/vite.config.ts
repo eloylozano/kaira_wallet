@@ -7,6 +7,9 @@ export default defineConfig({
     server: {
         host: true,
         allowedHosts: true,
-    }, 
-    plugins: [tailwindcss(), sveltekit()]
+    },
+    plugins: [tailwindcss(), sveltekit()],
+    optimizeDeps: {
+        include: ['echarts', 'zrender']
+    }
 });

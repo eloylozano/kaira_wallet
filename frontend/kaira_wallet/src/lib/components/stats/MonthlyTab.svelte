@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { statsService } from '$lib/stores/stats.svelte';
 
+	import * as echarts from 'echarts';
 	import SavingsCircle from '../charts/SavingsCircle.svelte';
 	import DailyBudgetCard from '../charts/DailyBudgetCard.svelte';
 	import RemainingDaysCard from '../charts/RemainingDaysCard.svelte';

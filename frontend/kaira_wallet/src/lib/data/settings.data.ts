@@ -2,22 +2,22 @@ import { goto } from '$app/navigation';
 
 export type SettingItem =
 	| {
-			type: 'action';
-			label: string;
-			btnText?: string;
-			variant?: 'normal' | 'danger';
-			action: () => void;
-	  }
+		type: 'action';
+		label: string;
+		btnText?: string;
+		variant?: 'normal' | 'danger';
+		action: () => void;
+	}
 	| {
-			type: 'budget';
-			label: string;
-	  }
+		type: 'budget';
+		label: string;
+	}
 	| {
-			type: 'toggle';
-			label: string;
-			value: () => boolean;
-			set: (v: boolean) => void;
-	  };
+		type: 'toggle';
+		label: string;
+		value: () => boolean;
+		set: (v: boolean) => void;
+	};
 
 export type SettingsSection = {
 	name: string;
@@ -68,10 +68,15 @@ export function getSettingsSections(
 				{
 					type: 'budget',
 					label: 'Presupuesto mensual'
+				},
+				{
+					type: 'action',
+					label: 'Inversiones',
+					btnText: 'Gestionar',
+					action: () => goto('/settings/investment-rules')
 				}
 			]
 		},
-
 		{
 			name: 'Datos',
 			items: [
@@ -80,7 +85,7 @@ export function getSettingsSections(
 					label: 'Configurar categorías',
 					btnText: 'Configurar',
 					action: () => {
-						goto('/categories');
+						goto('/settings/categories');
 						if (useHaptics) haptic();
 					}
 				},
