@@ -35,10 +35,13 @@ class InvestmentStore {
         'Otros': '#64748b'
     });
 
+    targetSavings = $state<number>(50000);
     constructor() {
         if (browser) {
             const savedRules = localStorage.getItem('inv_rules');
             const savedColors = localStorage.getItem('inv_colors');
+            const savedTarget = localStorage.getItem('inv_target');
+            if (savedTarget) this.targetSavings = Number(savedTarget);
             if (savedRules) this.rules = JSON.parse(savedRules);
             if (savedColors) this.categoryColors = JSON.parse(savedColors);
         }
@@ -59,10 +62,16 @@ class InvestmentStore {
         this.save();
     }
 
+    updateTarget(value: number) {
+        this.targetSavings = value;
+        this.save();
+    }
+
     private save() {
         if (browser) {
             localStorage.setItem('inv_rules', JSON.stringify(this.rules));
             localStorage.setItem('inv_colors', JSON.stringify(this.categoryColors));
+            localStorage.setItem('inv_target', this.targetSavings.toString());
         }
     }
 
@@ -76,6 +85,10 @@ class InvestmentStore {
         }
         return fullName.length > 15 ? fullName.slice(0, 13) + '..' : fullName;
     }
+
+
+
+
 }
 
 export const investmentStore = new InvestmentStore();

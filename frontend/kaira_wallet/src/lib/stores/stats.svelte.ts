@@ -238,6 +238,29 @@ class StatsService {
             this.equityLoading = false;
         }
     }
+
+    // Añadir al estado de la clase StatsService
+    projectionData = $state({
+        current_balance: 0,
+        avg_monthly_savings: 0,
+        projected_december: 0,
+        months_left: 0
+    });
+
+    async fetchFreedomProjection() {
+        try {
+            // Asegúrate de que selectedYear no sea undefined
+            const year = this.selectedYear || new Date().getFullYear();
+            const res = await fetch(apiUrl(`/stats/freedom-projection?year=${year}`), {
+                headers: { 'X-Kaira-PIN': KAIRA_PIN }
+            });
+            if (res.ok) {
+                this.projectionData = await res.json();
+            }
+        } catch (err) {
+            console.error('Error en proyección:', err);
+        }
+    }
 }
 
 export const statsService = new StatsService();
