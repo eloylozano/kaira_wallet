@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { investmentStore } from '$lib/stores/investments.svelte';
+	import { investmentStore } from '$lib/stores/domain/investments.svelte';
 	import GlassCard from '$lib/components/ui/core/GlassCard.svelte';
 	import { fly, fade } from 'svelte/transition';
 

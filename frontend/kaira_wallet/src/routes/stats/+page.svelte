@@ -1,13 +1,13 @@
 <script lang="ts">
 	import GlassSelector from '$lib/components/ui/core/GlassSelector.svelte';
 	import SegmentedControl from '$lib/components/ui/SegmentedControl.svelte';
-	import { statsService } from '$lib/stores/stats.svelte';
+	import { statsService } from '$lib/stores/domain/stats.svelte';
 
 	// Importación de los nuevos componentes de pestaña
-	import MonthlyTab from '$lib/components/stats/MonthlyTab.svelte';
-	import DistributionTab from '$lib/components/stats/DistributionTab.svelte';
-	import FreedomTab from '$lib/components/stats/FreedomTab.svelte';
-	import EquityTab from '$lib/components/stats/EquityTab.svelte';
+	import MonthlyTab from '$lib/components/stats/tabs/MonthlyTab.svelte';
+	import DistributionTab from '$lib/components/stats/tabs/DistributionTab.svelte';
+	import FreedomTab from '$lib/components/stats/tabs/FreedomTab.svelte';
+	import EquityTab from '$lib/components/stats/tabs/EquityTab.svelte';
 
 	let selectedTab = $state('mes');
 

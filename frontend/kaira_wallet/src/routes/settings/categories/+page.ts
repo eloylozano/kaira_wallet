@@ -1,4 +1,4 @@
-import { categoriesStore } from '$lib/stores/categories.svelte';
+import { categoriesStore } from '$lib/stores/domain/categories.svelte';
 import type { PageLoad } from './$types';
 
 export const load: PageLoad = async () => {

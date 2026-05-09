@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { haptics } from '$lib/utils/haptic';
+	import { haptics } from '$lib/utils/device/haptic';
 	import { fly, fade } from 'svelte/transition';
 
 	interface Option {

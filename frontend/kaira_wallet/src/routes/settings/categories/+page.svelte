@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import { categoriesStore } from '$lib/stores/categories.svelte';
-	import CategoryList from '$lib/components/ui/categories/CategoryList.svelte';
-	import CategoryModal from '$lib/components/ui/categories/CategoryModal.svelte';
+	import { categoriesStore } from '$lib/stores/domain/categories.svelte';
+	import CategoryList from '$lib/components/categories/CategoryList.svelte';
+	import CategoryModal from '$lib/components/categories/CategoryModal.svelte';
 	import SegmentedControl from '$lib/components/ui/SegmentedControl.svelte';
 
 	let isOpen = $state(false);

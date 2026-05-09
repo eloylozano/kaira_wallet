@@ -3,7 +3,7 @@
     import { getTransaction, deleteTransaction } from '$lib/api/transactions';
     import ConfirmModal from '$lib/components/ui/ConfirmModal.svelte';
     import { goto } from '$app/navigation';
-	import TransactionForm from '$lib/components/forms/TransactionForm.svelte';
+	import TransactionForm from '$lib/components/transactions/form/TransactionForm.svelte';
 
     let { data } = $props();
 

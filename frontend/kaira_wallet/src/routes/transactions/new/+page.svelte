@@ -1,5 +1,5 @@
 <script lang="ts">
-	import TransactionForm from "$lib/components/forms/TransactionForm.svelte";
+	import TransactionForm from "$lib/components/transactions/form/TransactionForm.svelte";
 
 </script>
 

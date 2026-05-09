@@ -1,14 +1,14 @@
 <script lang="ts">
-    import { theme } from '$lib/stores/theme';
+    import { theme } from '$lib/stores/ui/theme';
     import GlassButton from '$lib/components/ui/core/GlassButton.svelte';
-    import ChangePinModal from '$lib/components/ui/ChangePinModal.svelte';
+    import ChangePinModal from '$lib/components/settings/ChangePinModal.svelte';
     import ConfirmModal from '$lib/components/ui/ConfirmModal.svelte';
     import GlassCard from '$lib/components/ui/core/GlassCard.svelte';
     import SegmentedControl from '$lib/components/ui/SegmentedControl.svelte';
 
-    import { auth } from '$lib/stores/auth';
-    import { settingsStore } from '$lib/stores/settings.svelte';
-    import { investmentStore } from '$lib/stores/investments.svelte';
+    import { auth } from '$lib/stores/session/auth';
+    import { settingsStore } from '$lib/stores/domain/settings.svelte';
+    import { investmentStore } from '$lib/stores/domain/investments.svelte';
     import { getSettingsSections } from '$lib/data/settings.data';
 
     const haptics = {

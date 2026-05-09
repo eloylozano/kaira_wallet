@@ -1,9 +1,9 @@
 <script>
     import './layout.css';
-    import TabBar from '$lib/components/layout/TabBar.svelte';
+    import TabBar from '$lib/components/app/TabBar.svelte';
     // CAMBIO: Importamos 'auth' en lugar de 'isUnlocked'
-    import { auth } from '$lib/stores/auth'; 
-    import PinLock from '$lib/components/layout/PinLock.svelte';
+    import { auth } from '$lib/stores/session/auth'; 
+    import PinLock from '$lib/components/app/PinLock.svelte';
 </script>
 
 <div class="app-container">

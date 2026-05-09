@@ -1,12 +1,12 @@
 <script lang="ts">
-    import HomeHeader from '$lib/components/home/HomeHeader.svelte';
-    import BalanceCard from '$lib/components/home/BalanceCard.svelte';
-    import HomeChart from '$lib/components/charts/HomeChart.svelte';
-    import BudgetProgress from '$lib/components/home/BudgetProgress.svelte';
-    import TransactionItem from '$lib/components/ui/TransactionItem.svelte';
+    import HomeHeader from '$lib/components/dashboard/HomeHeader.svelte';
+    import BalanceCard from '$lib/components/dashboard/BalanceCard.svelte';
+    import HomeChart from '$lib/components/stats/charts/HomeChart.svelte';
+    import BudgetProgress from '$lib/components/dashboard/BudgetProgress.svelte';
+    import TransactionItem from '$lib/components/transactions/TransactionItem.svelte';
     
-    import { transactionsStore } from '$lib/stores/transactions.svelte';
-    import { statsService } from '$lib/stores/stats.svelte';
+    import { transactionsStore } from '$lib/stores/domain/transactions.svelte';
+    import { statsService } from '$lib/stores/domain/stats.svelte';
     import { onMount } from 'svelte';
     import { goto } from '$app/navigation';
 

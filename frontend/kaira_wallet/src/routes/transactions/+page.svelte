@@ -1,11 +1,11 @@
 <script lang="ts">
-	import FilterBar from '$lib/components/ui/FilterBar.svelte';
-	import PaginationBar from '$lib/components/ui/PaginationBar.svelte';
-	import SearchBar from '$lib/components/ui/SearchBar.svelte';
+	import FilterBar from '$lib/components/transactions/controls/FilterBar.svelte';
+	import PaginationBar from '$lib/components/transactions/controls/PaginationBar.svelte';
+	import SearchBar from '$lib/components/transactions/controls/SearchBar.svelte';
 	import SegmentedControl from '$lib/components/ui/SegmentedControl.svelte';
-	import TransactionItem from '$lib/components/ui/TransactionItem.svelte';
-	import { transactionsStore } from '$lib/stores/transactions.svelte';
-	import { groupByMonth } from '$lib/utils/groupByMonth';
+	import TransactionItem from '$lib/components/transactions/TransactionItem.svelte';
+	import { transactionsStore } from '$lib/stores/domain/transactions.svelte';
+	import { groupByMonth } from '$lib/utils/date/groupByMonth';
 
 	let search = $state('');
 	let type = $state('');
