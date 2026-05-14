@@ -59,18 +59,9 @@ npm run dev
 
 ## 🌐 Despliegue
 
-Este proyecto está preparado para desplegarse de forma híbrida:
+Este proyecto está preparado para desplegarse en docker
 
-* **Frontend:** Optimizado para [Vercel](https://vercel.com) con `ssr = false` para garantizar compatibilidad con librerías del navegador.
-* **Backend:** Compatible con Render, Railway o contenedores Docker.
 
-## 📝 Roadmap
-
-* [x] Integración de Svelte 5 Runes.
-* [x] Dashboard de Equity con ECharts.
-* [ ] Conexión bancaria mediante API segura.
-* [ ] Exportación de informes en PDF/Excel.
-* [ ] Soporte para multi-divisa y criptoactivos.
 
 ## 👤 Autor
 
