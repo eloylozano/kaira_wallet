@@ -57,7 +57,7 @@
     );
 </script>
 
-<div class="mx-auto flex w-full max-w-xl flex-col gap-6 px-4 md:px-0">
+<div class="mx-auto flex w-full max-w-xl flex-col gap-6 md:px-0">
     <header class="pt-6">
         <h1 class="text-4xl font-black tracking-tighter text-white uppercase italic">Ajustes</h1>
     </header>

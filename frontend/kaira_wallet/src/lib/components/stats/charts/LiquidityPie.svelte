@@ -2,14 +2,14 @@
     import { onMount } from 'svelte';
     import * as echarts from 'echarts';
 
-    // Recibimos los valores calculados desde el padre (EquityTab)
+    // Usamos destructuring con valores por defecto para asegurar reactividad
     let { invested = 0, cash = 0 } = $props();
 
     let chartEl: HTMLDivElement | null = null;
     let chart: echarts.ECharts | null = null;
 
     const COLORS = {
-        cash: '#10b981',    // Verde
+        cash: '#10b981',    // Verde (Kaira Success)
         invest: '#0ea5e9'   // Sky Blue
     };
 
@@ -41,19 +41,18 @@
             series: [{
                 name: 'Ratio de Liquidez',
                 type: 'pie',
-                radius: ['50%', '80%'],
+                radius: ['55%', '80%'], // Un poco más fino para estilo moderno
                 center: ['50%', '45%'],
                 avoidLabelOverlap: false,
                 itemStyle: { 
-                    borderRadius: 8, 
-                    borderColor: 'rgba(0,0,0,0.2)', 
-                    borderWidth: 2 
+                    borderRadius: 10, 
+                    borderColor: '#020617', // Color de fondo para separar sectores
+                    borderWidth: 3 
                 },
                 label: { show: false },
                 emphasis: {
-                    label: {
-                        show: false
-                    }
+                    scale: true,
+                    scaleSize: 5
                 },
                 data: [
                     { value: cash, name: 'Efectivo', itemStyle: { color: COLORS.cash } },
@@ -63,9 +62,10 @@
         });
     }
 
-    // Reaccionar a cambios en las props
+    // Svelte 5 Effect: Se activará cada vez que 'invested' o 'cash' cambien
     $effect(() => {
-        if (invested !== undefined || cash !== undefined) {
+        // Solo intentamos actualizar si el chart ya existe
+        if (chart) {
             updateChart();
         }
     });
@@ -73,7 +73,7 @@
     onMount(() => {
         if (chartEl) {
             chart = echarts.init(chartEl);
-            updateChart();
+            updateChart(); // Primera carga
         }
         
         const handleResize = () => chart?.resize();
@@ -86,4 +86,12 @@
     });
 </script>
 
-<div bind:this={chartEl} class="h-64 w-full"></div>
+<div class="relative h-64 w-full">
+    <div bind:this={chartEl} class="h-full w-full"></div>
+    
+    {#if invested === 0 && cash === 0}
+        <div class="absolute inset-0 flex items-center justify-center pb-8">
+            <span class="text-[10px] font-black uppercase opacity-20">Sin datos</span>
+        </div>
+    {/if}
+</div>
