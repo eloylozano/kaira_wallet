@@ -1,44 +1,52 @@
+<script module lang="ts">
+	type AssetNode = {
+		name: string;
+		value?: number;
+		children?: AssetNode[];
+		itemStyle?: { color: string; opacity?: number };
+	};
+
+	type GroupedAsset = Pick<AssetNode, 'name' | 'value'>;
+</script>
+
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import * as echarts from 'echarts';
 	// Importamos el store que ahora maneja la lógica y persistencia
 	import { investmentStore } from '$lib/stores/domain/investments.svelte';
 
-	interface AssetNode {
-		name: string;
-		value?: number;
-		children?: AssetNode[];
-		itemStyle?: { color: string; opacity?: number };
-	}
-
-	let { data = [] }: { data: AssetNode[] } = $props();
+	let { data = [] } = $props<{ data?: AssetNode[] }>();
 
 	let chartEl: HTMLDivElement | null = null;
 	let chart: echarts.ECharts | null = null;
 
 	// Procesamos los datos usando el store para colores y nombres cortos
 	const processedData = $derived(
-		data.map((cat) => {
+		(data as AssetNode[]).map((cat: AssetNode) => {
 			// Accedemos a los colores desde el store
 			const baseColor = investmentStore.categoryColors[cat.name] || '#64748b';
 
-			const groupedChildren = (cat.children || []).reduce((acc: any[], asset) => {
+			const children = (cat.children ?? []) as AssetNode[];
+			const groupedChildren = children.reduce(
+				(acc: GroupedAsset[], asset: AssetNode): GroupedAsset[] => {
 				// Usamos el método del store para detectar el alias
 				const shortName = investmentStore.getShortName(asset.name);
-				const existing = acc.find((item) => item.name === shortName);
+				const existing = acc.find((item: GroupedAsset) => item.name === shortName);
 
 				if (existing) {
-					existing.value += asset.value || 0;
+					existing.value = (existing.value ?? 0) + (asset.value || 0);
 				} else {
 					acc.push({ name: shortName, value: asset.value || 0 });
 				}
 				return acc;
-			}, []);
+				},
+				[] as GroupedAsset[]
+			);
 
 			return {
 				name: cat.name,
 				itemStyle: { color: baseColor },
-				children: groupedChildren.map((asset, index) => ({
+				children: groupedChildren.map((asset: GroupedAsset, index: number) => ({
 					...asset,
 					itemStyle: {
 						color: baseColor,
@@ -94,7 +102,7 @@
 							r0: '20%',
 							r: '45%',
 							itemStyle: { borderRadius: 6, borderWidth: 2, borderColor: '#111' },
-							label: { rotate: 'tangential', fontSize: 10, fontWeight: '900', color: '#fff' }
+							label: { rotate: 'tangential', fontSize: 10, fontWeight: 900, color: '#fff' }
 						},
 						{
 							// Nivel 2: Activos agrupados

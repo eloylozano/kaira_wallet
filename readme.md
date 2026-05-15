@@ -1,74 +1,113 @@
-# 🪙 Kaira Wallet
+# Kaira Wallet
 
-**Kaira Wallet** es una plataforma de gestión financiera personal de alto rendimiento, diseñada con un enfoque en la privacidad, la velocidad y la inteligencia artificial. Permite el seguimiento de patrimonio neto, inversiones y flujo de caja con una interfaz moderna basada en *glassmorphism*.
+Kaira Wallet es una aplicacion de finanzas personales para registrar ingresos, gastos e inversiones, consultar estadisticas y mantener una vision clara del presupuesto mensual y del patrimonio.
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
-![Svelte](https://img.shields.io/badge/Svelte-5.0-ff3e00?logo=svelte)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?logo=fastapi)
+El proyecto esta dividido en un backend FastAPI con PostgreSQL y un frontend SvelteKit/Svelte 5 con una interfaz responsive orientada a uso diario.
 
-## 🚀 Características Principales
+## Funcionalidades
 
-* **Dashboard de Patrimonio (Equity):** Visualización en tiempo real del ratio de liquidez (Cash vs. Inversión) mediante gráficos dinámicos con ECharts.
-* **Kaira Wallet Mind (AI):** Motor de procesamiento inteligente que utiliza LLMs locales (vía Ollama) para la categorización automática de transacciones y análisis de gastos.
-* **Arquitectura Moderna:** Frontend reactivo con Svelte 5 (Runes) para una gestión de estado ultra eficiente.
-* **Enfoque en Privacidad:** Sistema de bloqueo por PIN y persistencia local/híbrida.
-* **Diseño Premium:** Interfaz oscura con efectos de desenfoque, optimizada para escritorio y móvil.
+- Registro, edicion, busqueda, filtrado y paginacion de movimientos.
+- Tipos de movimiento: ingresos, gastos e inversiones.
+- Categorias jerarquicas con iconos, subcategorias y gestion desde ajustes.
+- Presupuesto mensual, resumen de balance y ultimos movimientos en el dashboard.
+- Estadisticas por mes, distribucion, libertad financiera y composicion de cartera.
+- Reglas de inversion para agrupar activos y mostrar alias/colores en graficas.
+- Bloqueo por PIN y cabecera `X-Kaira-PIN` para proteger la API.
+- Graficas con ECharts y controles tactiles con Svelte 5.
 
-## 🛠️ Tech Stack
+## Stack
 
 ### Frontend
-* **Framework:** [Svelte 5](https://svelte.dev/) (usando `$state`, `$derived`, `$effect`).
-* **Estilos:** Tailwind CSS.
-* **Gráficos:** Apache ECharts.
-* **Componentes:** Flatpickr (calendarios optimizados), Lucide Icons.
+
+- SvelteKit + Svelte 5
+- TypeScript
+- Tailwind CSS
+- ECharts
+- Flatpickr
+- Lucide Svelte
 
 ### Backend
-* **Lenguaje:** Python 3.10+
-* **Framework:** FastAPI.
-* **IA:** Ollama (procesamiento de lenguaje natural para finanzas).
-* **Base de datos:** SQLite / PostgreSQL (según despliegue).
 
-## 📦 Instalación y Configuración
+- Python 3
+- FastAPI
+- SQLAlchemy
+- PostgreSQL
+- Uvicorn
 
-### 1. Clonar el repositorio
-```bash
-git clone [https://github.com/tu-usuario/kaira-wallet.git](https://github.com/tu-usuario/kaira-wallet.git)
-cd kaira-wallet
+## Estructura
 
+```text
+backend/                 API FastAPI, modelos, routers y servicios de estadisticas
+frontend/kaira_wallet/   Aplicacion SvelteKit
+ai_module/               Espacio reservado para modulo de IA
+docker-compose.yaml      Entorno completo con PostgreSQL, API y frontend
 ```
 
-### 2. Configurar el Backend (FastAPI)
+## Arranque con Docker
+
+Desde la raiz del repositorio:
+
+```bash
+docker compose up --build
+```
+
+Servicios por defecto:
+
+- Frontend: `http://localhost:5174`
+- API: `http://localhost:8000`
+- Swagger: `http://localhost:8000/docs`
+- PostgreSQL: `localhost:5432`
+
+## Desarrollo local
+
+### Backend
 
 ```bash
 cd backend
 python -m venv venv
-source venv/bin/activate  # En Windows: venv\Scripts\activate
+venv\Scripts\activate
 pip install -r requirements.txt
-uvicorn main:app --reload
-
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### 3. Configurar el Frontend (SvelteKit)
+La API crea las tablas al arrancar e inicializa un usuario local y categorias base.
+
+### Frontend
 
 ```bash
-cd frontend
+cd frontend/kaira_wallet
 npm install
 npm run dev
-
 ```
 
-## 🌐 Despliegue
+Comandos utiles:
 
-Este proyecto está preparado para desplegarse en docker
+```bash
+npm run check
+npm run build
+npm run format
+```
 
+## Configuracion
 
+El backend espera una base PostgreSQL. Con Docker Compose se usa:
 
-## 👤 Autor
+```text
+DATABASE_URL=postgresql://user:pass@db:5432/kaira_wallet
+```
 
-**Eloy Lozano** *Full Stack Developer & AI Specialist student*
+La API esta protegida por PIN mediante la cabecera:
 
-* Website: [eloylozano.es](https://eloylozano.es)
-* LinkedIn: [Tu perfil]
+```text
+X-Kaira-PIN: 8061
+```
 
----
+El frontend lee su configuracion desde `frontend/kaira_wallet/.env`.
 
+## Estado del proyecto
+
+Kaira Wallet esta en desarrollo activo. La base funcional ya cubre movimientos, categorias, ajustes, presupuesto y visualizaciones, pero quedan advertencias de accesibilidad/CSS por pulir y mejoras pendientes alrededor de autenticacion y despliegue final.
+
+## Autor
+
+Eloy Lozano

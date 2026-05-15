@@ -4,7 +4,7 @@ export type SettingItem =
     | {
         type: 'action';
         label: string;
-        btnText?: string;
+        btnText: string;
         variant?: 'normal' | 'danger';
         action: () => void;
     }

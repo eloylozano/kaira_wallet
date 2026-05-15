@@ -9,7 +9,7 @@
 
 	let search = $state('');
 	let type = $state('');
-	let isPaid = $state<boolean | ''>('');
+	let isPaid = $state<'' | 'true' | 'false'>('');
 	let sort = $state<'desc' | 'asc'>('desc');
 
 	let page = $state(0);
@@ -32,7 +32,7 @@
 
 		transactionsStore.fetch({
 			transaction_type: type || undefined,
-			is_paid: isPaid === '' ? undefined : isPaid,
+			is_paid: isPaid === '' ? undefined : isPaid === 'true',
 			search: search || undefined, // 👈 AQUÍ
 			skip,
 			limit,

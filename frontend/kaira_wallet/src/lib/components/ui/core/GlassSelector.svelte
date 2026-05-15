@@ -29,7 +29,7 @@
 	});
 
 	let selectedLabel = $derived(
-		options.find((opt) => opt.value == value)?.label || placeholder
+		options.find((opt: Option) => opt.value == value)?.label || placeholder
 	);
 
 	function updateCoords() {

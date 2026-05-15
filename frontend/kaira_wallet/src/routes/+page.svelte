@@ -10,8 +10,6 @@
     import { onMount } from 'svelte';
     import { goto } from '$app/navigation';
 
-    let monthlyBudget = 350;
-
     // Cargamos datos al montar el componente
     onMount(() => {
         // Pedimos los últimos movimientos para la lista
@@ -34,10 +32,7 @@
     <HomeHeader />
     <BalanceCard />
     
-    <BudgetProgress
-        budget={monthlyBudget}
-        spent={statsService.monthlyStatsData.expense}
-    />
+    <BudgetProgress />
 
     <HomeChart />
 

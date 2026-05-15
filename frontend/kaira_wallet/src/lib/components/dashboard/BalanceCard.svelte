@@ -5,8 +5,8 @@
 	let scrolled = $state(false);
 	const currentYear = new Date().getFullYear();
 
-	onMount(async () => {
-		await statsService.fetchHomeData(currentYear);
+	onMount(() => {
+		statsService.fetchHomeData(currentYear);
 
 		const onScroll = () => {
 			scrolled = window.scrollY > 20;

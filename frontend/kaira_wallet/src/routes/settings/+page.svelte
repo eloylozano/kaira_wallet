@@ -152,6 +152,7 @@
 <ConfirmModal
     isOpen={isConfirmLockOpen}
     title="¿Bloquear sesión?"
+    message="Tendrás que introducir el PIN para volver a acceder."
     confirmText="Bloquear"
     onConfirm={handleLockConfirm}
     onCancel={() => (isConfirmLockOpen = false)}

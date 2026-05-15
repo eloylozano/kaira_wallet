@@ -4,6 +4,7 @@ import { apiUrl, KAIRA_PIN } from '$lib/config/api';
 export interface Category {
 	id: number;
 	name: string;
+	icon?: string;
 	transaction_type: 'expense' | 'income' | 'invest';
 	subcategories: Category[];
 	parent_id: number | null;

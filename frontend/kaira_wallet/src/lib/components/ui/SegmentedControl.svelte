@@ -21,7 +21,7 @@
 		}
 	};
 
-	let activeIndex = $derived(options.findIndex((o) => o.value === selected));
+	let activeIndex = $derived(options.findIndex((o: Option) => o.value === selected));
 	let widthPercent = $derived(100 / options.length);
 	let activeColor = $derived(options[activeIndex]?.color ?? 'var(--primary)');
 

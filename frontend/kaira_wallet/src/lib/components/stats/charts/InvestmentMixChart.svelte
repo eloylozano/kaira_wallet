@@ -16,6 +16,12 @@
 		children?: SunburstNode[];
 	}
 
+	interface AllocationNode {
+		name: string;
+		value?: number;
+		children?: AllocationNode[];
+	}
+
 	let chartEl: HTMLDivElement | null = null;
 	let chart: echarts.ECharts | null = null;
 
@@ -30,7 +36,7 @@
 		const investmentNode = allocation.find((item) => item.name === 'Inversión');
 		if (!investmentNode) return [] as SunburstNode[];
 
-		return investmentNode.children.map((cat): SunburstNode => {
+		return (investmentNode.children ?? []).map((cat: AllocationNode): SunburstNode => {
 			// Usamos los colores definidos en el store
 			const baseColor = investmentStore.categoryColors[cat.name] || '#64748b';
 
@@ -38,7 +44,7 @@
 				name: cat.name,
 				itemStyle: { color: baseColor },
 				children: cat.children?.map(
-					(asset, index): SunburstNode => ({
+					(asset: AllocationNode, index: number): SunburstNode => ({
 						// Usamos la función de alias del store
 						name: investmentStore.getShortName(asset.name),
 						value: asset.value,
@@ -109,7 +115,7 @@
 							r0: '20%',
 							r: '48%',
 							itemStyle: { borderRadius: 8, borderWidth: 2, borderColor: '#111' },
-							label: { rotate: 'tangential', fontSize: 10, fontWeight: '900', color: '#fff' }
+							label: { rotate: 'tangential', fontSize: 10, fontWeight: 900, color: '#fff' }
 						},
 						{
 							r0: '52%',
@@ -119,7 +125,7 @@
 								position: 'outside',
 								fontSize: 10,
 								color: 'rgba(255,255,255,0.6)',
-								fontWeight: '700'
+								fontWeight: 700
 							}
 						}
 					]

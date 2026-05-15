@@ -4,9 +4,10 @@
 	import CategoryList from '$lib/components/categories/CategoryList.svelte';
 	import CategoryModal from '$lib/components/categories/CategoryModal.svelte';
 	import SegmentedControl from '$lib/components/ui/SegmentedControl.svelte';
+	import type { Category } from '$lib/stores/domain/categories.svelte';
 
 	let isOpen = $state(false);
-	let editing = $state(null);
+	let editing = $state<Category | null>(null);
 
 	let filter = $state<'all' | 'income' | 'expense' | 'invest'>('all');
 
@@ -19,7 +20,7 @@
 		isOpen = true;
 	}
 
-	function openEdit(cat) {
+	function openEdit(cat: Category) {
 		editing = cat;
 		isOpen = true;
 	}

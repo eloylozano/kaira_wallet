@@ -1,15 +1,17 @@
 <script lang="ts">
 	import * as Icons from 'lucide-svelte';
+	import type { Component } from 'svelte';
 	import { iconGroups } from '$lib/data/iconGroups';
+	import type { IconGroup } from '$lib/data/iconGroups';
 
-	let { icon = $bindable('') } = $props();
+	let { icon = $bindable('') } = $props<{ icon: string }>();
 
-	let activeGroup = $state('money');
+	let activeGroup = $state<IconGroup>('money');
 
 	function findGroup(value: string) {
 		return Object.entries(iconGroups).find(([_, icons]) =>
-			icons.includes(value)
-		)?.[0] ?? 'basics';
+			(icons as readonly string[]).includes(value)
+		)?.[0] as IconGroup ?? 'basics';
 	}
 
 	function setIcon(i: string) {
@@ -26,7 +28,8 @@
 
 	function getIcon(name: string) {
 		const key = toPascal(name);
-		return Icons[key] || Icons.Circle;
+		const iconSet = Icons as unknown as Record<string, Component>;
+		return iconSet[key] || Icons.Circle;
 	}
 </script>
 
@@ -35,7 +38,7 @@
     {#each Object.keys(iconGroups) as g}
         <button
             type="button"
-            onclick={() => (activeGroup = g)}
+            onclick={() => (activeGroup = g as IconGroup)}
             class="
                 /* flex-basis controla el ancho base para que bajen de fila bien */
                 flex-grow flex-basis-[calc(50%-8px)] sm:flex-basis-0

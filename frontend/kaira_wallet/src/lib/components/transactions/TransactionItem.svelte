@@ -1,7 +1,23 @@
 <script lang="ts">
 	import * as Icons from 'lucide-svelte';
+	import type { Component } from 'svelte';
 
-	let { tx } = $props();
+	type TransactionType = 'expense' | 'income' | 'invest';
+
+	type TransactionItemData = {
+		id?: number;
+		amount: number | string;
+		description?: string;
+		type: TransactionType;
+		date?: string;
+		is_paid?: boolean;
+		category?: {
+			name?: string;
+			icon?: string;
+		};
+	};
+
+	let { tx } = $props<{ tx: TransactionItemData }>();
 
 	function toPascalCase(str: string) {
 		if (!str) return '';
@@ -14,7 +30,8 @@
 	let IconComponent = $derived(() => {
 		if (!tx.category?.icon) return null;
 		const key = toPascalCase(tx.category.icon);
-		return Icons[key] || null;
+		const iconSet = Icons as unknown as Record<string, Component>;
+		return iconSet[key] || null;
 	});
 
 	const Icon = $derived(IconComponent());

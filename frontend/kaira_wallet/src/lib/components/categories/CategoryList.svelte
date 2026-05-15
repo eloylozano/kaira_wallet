@@ -1,7 +1,11 @@
 <script lang="ts">
 	import CategoryItem from './CategoryItem.svelte';
+	import type { Category } from '$lib/stores/domain/categories.svelte';
 
-	let { items = [], onEdit } = $props();
+	let { items = [], onEdit } = $props<{
+		items: Category[];
+		onEdit: (cat: Category) => void;
+	}>();
 </script>
 
 <div class="space-y-3">

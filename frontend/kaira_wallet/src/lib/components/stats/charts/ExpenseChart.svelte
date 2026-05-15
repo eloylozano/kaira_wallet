@@ -1,8 +1,10 @@
 <script lang="ts">
-    let { data = [] } = $props<{ data: { date: string; value: number }[] }>();
+    type ExpensePoint = { date: string; value: number };
+
+    let { data = [] } = $props<{ data: ExpensePoint[] }>();
 
     let normalizedData = $derived(
-        (data ?? []).reduce((acc, curr) => {
+        (data ?? []).reduce((acc: Record<string, number>, curr: ExpensePoint) => {
             const d = new Date(curr.date);
             const key = `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
             acc[key] = Math.abs(curr.value || 0);
@@ -15,7 +17,7 @@
         const today = now.getDate();
         const year = now.getFullYear();
         const month = now.getMonth();
-        const fullSeries = [];
+        const fullSeries: { day: number; displayValue: number }[] = [];
 
         for (let i = 1; i <= today; i++) {
             const key = `${year}-${month + 1}-${i}`;

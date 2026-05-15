@@ -1,12 +1,18 @@
 <script lang="ts">
 	import * as Icons from 'lucide-svelte';
+	import type { Component } from 'svelte';
 	import ConfirmModal from '$lib/components/ui/ConfirmModal.svelte';
 
 	import { deleteCategory } from '$lib/api/categories';
+	import type { Category } from '$lib/stores/domain/categories.svelte';
 	import { categoriesStore } from '$lib/stores/domain/categories.svelte';
 	import { transactionTypeLabel } from '$lib/utils/transactions/transactionType';
 
-	let { cat, onEdit } = $props();
+	let { cat, onEdit, isChild = false } = $props<{
+		cat: Category;
+		onEdit: (cat: Category) => void;
+		isChild?: boolean;
+	}>();
 
 	let showDeleteModal = $state(false);
 
@@ -37,7 +43,8 @@
 
 	function getIcon(name: string) {
 		const key = toPascal(name);
-		return Icons[key] || Icons.Circle;
+		const iconSet = Icons as unknown as Record<string, Component>;
+		return iconSet[key] || Icons.Circle;
 	}
 
 	const typeStyle = {
@@ -46,7 +53,9 @@
 		invest: { color: '#00a6f4', bg: 'rgba(59,130,246,0.12)' }
 	};
 
-	const style = $derived(typeStyle[cat.transaction_type] ?? typeStyle.expense);
+	const style = $derived(
+		typeStyle[cat.transaction_type as keyof typeof typeStyle] ?? typeStyle.expense
+	);
 
 	async function confirmDelete() {
 		// 👇 si ya estamos en modo aviso ("Entendido"), solo cerrar
@@ -90,14 +99,14 @@
 	onCancel={closeModal}
 />
 
-<div class="kaira-panel relative rounded-2xl p-4">
+<div class="kaira-panel relative rounded-2xl p-4" class:opacity-90={isChild}>
 	<div class="flex items-center justify-between">
 		<div class="flex items-center gap-3">
 			<div
 				class="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10"
 				style="background:{style.bg}"
 			>
-				<svelte:component this={getIcon(cat.icon)} class="h-5 w-5" style="color:{style.color}" />
+				<svelte:component this={getIcon(cat.icon ?? 'circle')} class="h-5 w-5" style="color:{style.color}" />
 			</div>
 
 			<div>

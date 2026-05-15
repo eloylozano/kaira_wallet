@@ -4,7 +4,10 @@
     import 'flatpickr/dist/flatpickr.css';
     import 'flatpickr/dist/themes/dark.css';
 
-    let { value = $bindable(), label = 'Fecha' } = $props();
+    let { value = $bindable(''), label = 'Fecha' } = $props<{
+        value: string;
+        label?: string;
+    }>();
 
     let day = $state('');
     let month = $state('');
@@ -74,10 +77,11 @@
     function handleCalendarClick() {
         if (isMobile && dateInput) {
             // En móvil usamos el showPicker nativo que es superior
-            if ('showPicker' in dateInput) {
-                dateInput.showPicker();
+            const input = dateInput as HTMLInputElement & { showPicker?: () => void };
+            if (input.showPicker) {
+                input.showPicker();
             } else {
-                dateInput.click();
+                input.click();
             }
         }
         // En PC, flatpickr se encarga solo gracias al onMount
@@ -123,7 +127,7 @@
                 oninput={(e) => autoNext(e, 2, mRef)}
                 onkeydown={(e) => backNav(e, dRef)}
                 onblur={() => pad('day')}
-                class="w-10 border-0 bg-transparent text-center text-sm font-black text-white ring-0 outline-none placeholder:opacity-20 sm:w-12 sm:text-base"
+                class="w-12 border-0 bg-transparent text-center text-sm font-black text-white ring-0 outline-none placeholder:opacity-20 sm:w-12 sm:text-base"
             />
 
             <span class="opacity-20">-</span>
@@ -138,7 +142,7 @@
                 oninput={(e) => autoNext(e, 2, yRef)}
                 onkeydown={(e) => backNav(e, mRef, dRef)}
                 onblur={() => pad('month')}
-                class="w-10 border-0 bg-transparent text-center text-sm font-black text-white ring-0 outline-none placeholder:opacity-20 sm:w-12 sm:text-base"
+                class="w-12 border-0 bg-transparent text-center text-sm font-black text-white ring-0 outline-none placeholder:opacity-20 sm:w-12 sm:text-base"
             />
 
             <span class="opacity-20">-</span>

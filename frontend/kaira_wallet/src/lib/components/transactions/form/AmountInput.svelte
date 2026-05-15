@@ -1,7 +1,7 @@
 <script lang="ts">
 	type TransactionType = 'expense' | 'income' | 'invest';
 
-	let { value = $bindable<string>(), type = 'expense' as TransactionType } = $props<{
+	let { value = $bindable(''), type = 'expense' } = $props<{
 		value: string;
 		type?: TransactionType;
 	}>();
@@ -36,6 +36,8 @@
 		invest: 'bg-blue-500/5'
 	};
 
+	const safeType = $derived((type ?? 'expense') as TransactionType);
+
 	function formatToDecimal(val: string): string {
 		if (!val) return '';
 		const numericValue = Number.parseFloat(val);
@@ -58,7 +60,7 @@
 
 <div
 	class="glass-panel relative rounded-[32px] border border-white/10 p-8 transition-colors duration-500 {bgColors[
-		type
+		safeType
 	]}"
 >
 	<p class="text-center text-[10px] font-black tracking-[0.2em] uppercase opacity-40">Importe</p>
@@ -72,12 +74,12 @@
 			value={displayValue}
 			oninput={handleInput}
 			onblur={handleBlur}
-			class="amount-input w-3/4 bg-transparent text-center text-6xl font-black placeholder:opacity-10 {colors[
-				type
+			class="amount-input w-full bg-transparent text-center text-4xl font-black placeholder:opacity-10 sm:text-6xl {colors[
+				safeType
 			]}"
 		/>
 
-		<span class="text-5xl font-bold opacity-50 {colors[type]}">€</span>
+		<span class="text-3xl font-bold opacity-50 sm:text-5xl {colors[safeType]}">€</span>
 	</div>
 </div>
 

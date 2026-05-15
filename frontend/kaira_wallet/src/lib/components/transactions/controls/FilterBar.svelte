@@ -1,5 +1,10 @@
 <script lang="ts">
-	let { type = $bindable(''), isPaid = $bindable('') } = $props();
+	type PaidFilter = '' | 'true' | 'false';
+
+	let { type = $bindable(''), isPaid = $bindable('') } = $props<{
+		type: string;
+		isPaid: PaidFilter;
+	}>();
 
 	const types = [
 		{ value: '', label: 'Todos' },
@@ -10,8 +15,8 @@
 
 	const paidStates = [
 		{ value: '', label: 'Todos' },
-		{ value: 'true', label: 'Pagado' },
-		{ value: 'false', label: 'Pendiente' }
+		{ value: 'true' as PaidFilter, label: 'Pagado' },
+		{ value: 'false' as PaidFilter, label: 'Pendiente' }
 	];
 </script>
 
