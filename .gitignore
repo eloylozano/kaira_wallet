@@ -2,3 +2,4 @@ ai_module/
 datos_kaira.sql
 datos_kaira copy.sql
 kaira_before_restore_20260516.sql
+inserts.sql

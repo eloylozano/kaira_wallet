@@ -95,24 +95,24 @@ export function getSettingsSections(
                         if (useHaptics) haptic();
                     }
                 },
-                {
-                    type: 'action',
-                    label: 'Exportar historial (CSV)',
-                    btnText: 'Exportar',
-                    action: () => {
-                        if (useHaptics) haptic();
-                    }
-                },
-                {
-                    type: 'action',
-                    label: 'Borrar todos los gastos',
-                    btnText: 'Borrar todo',
-                    variant: 'danger',
-                    action: () => {
-                        setDeleteModal(true);
-                        if (useHaptics) haptic();
-                    }
-                }
+                // {
+                //     type: 'action',
+                //     label: 'Exportar historial (CSV)',
+                //     btnText: 'Exportar',
+                //     action: () => {
+                //         if (useHaptics) haptic();
+                //     }
+                // },
+                // {
+                //     type: 'action',
+                //     label: 'Borrar todos los gastos',
+                //     btnText: 'Borrar todo',
+                //     variant: 'danger',
+                //     action: () => {
+                //         setDeleteModal(true);
+                //         if (useHaptics) haptic();
+                //     }
+                // }
             ]
         }
     ];

@@ -5,7 +5,7 @@ from fastapi.security import APIKeyHeader
 import models
 from database import engine, get_db
 from routers import categories, transactions, stats
-from fastapi.openapi.utils import get_openapi #
+from fastapi.openapi.utils import get_openapi
 
 # 1. Creación de tablas automática
 models.Base.metadata.create_all(bind=engine)
@@ -13,25 +13,25 @@ models.Base.metadata.create_all(bind=engine)
 # 2. Definimos el esquema de seguridad
 api_key_header = APIKeyHeader(name="X-Kaira-PIN", auto_error=False)
 
-# 3. CREAMOS LA APP (Esto debe ir antes de los middlewares)
+# 3. CREAMOS LA APP
 app = FastAPI(
     title="Kaira Wallet API",
     description="API de gestión de gastos con protección por PIN",
     version="2.2.0",
 )
 
-# 4. Configuración de CORS (Ahora sí, sobre 'app')
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"], 
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 # --- CONFIGURACIÓN DE SEGURIDAD ---
 ACCESS_PIN = "8061" 
-EXEMPT_PATHS = ["/health", "/docs", "/openapi.json", "/redoc", "/favicon.ico", "/docs/oauth2-redirect"]
+
+# Añadimos /api a las rutas exentas porque ahora la API vivirá bajo /api
+EXEMPT_PATHS = [
+    "/api/health", "/health", 
+    "/api/docs", "/docs", 
+    "/api/openapi.json", "/openapi.json", 
+    "/api/redoc", "/redoc", 
+    "/favicon.ico"
+]
+
 def custom_openapi():
     if app.openapi_schema:
         return app.openapi_schema
@@ -41,7 +41,6 @@ def custom_openapi():
         description=app.description,
         routes=app.routes,
     )
-    # Definimos que la API usa una cabecera llamada X-Kaira-PIN
     openapi_schema["components"]["securitySchemes"] = {
         "ApiKeyAuth": {
             "type": "apiKey",
@@ -49,24 +48,26 @@ def custom_openapi():
             "name": "X-Kaira-PIN"
         }
     }
-    # Aplicamos esto a todas las rutas de forma global en Swagger
     openapi_schema["security"] = [{"ApiKeyAuth": []}]
     app.openapi_schema = openapi_schema
     return app.openapi_schema
 
 app.openapi = custom_openapi
+
+# --- MIDDLEWARE DEL PIN ADAPTADO ---
 @app.middleware("http")
 async def verify_pin(request: Request, call_next):
     if request.method == "OPTIONS":
         return await call_next(request)
 
     path = request.url.path
-    # Normalizamos el path para evitar problemas con barras finales
-    if path.rstrip("/") in [p.rstrip("/") for p in EXEMPT_PATHS] or path.startswith("/docs"):
+    
+    # Toleramos tanto la versión con /api como sin ella para desarrollo local
+    if path.rstrip("/") in [p.rstrip("/") for p in EXEMPT_PATHS] or path.startswith("/docs") or path.startswith("/api/docs"):
         return await call_next(request)
 
-    # Verificar el PIN (Tu lógica actual)
-    user_pin = request.headers.get("X-Kaira-PIN")
+    # Leemos el PIN soportando tanto mayúsculas como las minúsculas que mete Nginx
+    user_pin = request.headers.get("X-Kaira-PIN") or request.headers.get("x-kaira-pin")
     if user_pin != ACCESS_PIN:
         return JSONResponse(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -75,18 +76,27 @@ async def verify_pin(request: Request, call_next):
     
     return await call_next(request)
 
-# 5. Registro de Routers
-app.include_router(categories.router)
-app.include_router(transactions.router)
-app.include_router(stats.router)
+# 4. Configuración de CORS (Se registra DESPUÉS del PIN para envolver los errores)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], 
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# 5. REGISTRO DE ROUTERS CON PREFIJO GLOBAL /api
+# Esto hace que todas tus rutas pasen a ser de forma nativa /api/categories, /api/stats, etc.
+app.include_router(categories.router, prefix="/api")
+app.include_router(transactions.router, prefix="/api")
+app.include_router(stats.router, prefix="/api")
+
 # 5. Eventos de sistema
 @app.on_event("startup")
 def startup_event():
     db = next(get_db())
     try:
-        # 1. Crear usuario inicial si no existe
         init_default_user(db)
-        # 2. Inicializar categorías predefinidas
         init_predefined_categories(db)
         print("✅ Usuario y categorías inicializadas - API protegida por PIN")
     except Exception as e:
@@ -94,8 +104,9 @@ def startup_event():
     finally:
         db.close()
 
-# 6. Health Check
+# 6. Health Check (Mantenemos ambos mapeos por si acaso)
 @app.get("/health", tags=["System"])
+@app.get("/api/health", tags=["System"])
 def health_check():
     return {"status": "online", "protection": "PIN_ENABLED"}
 
