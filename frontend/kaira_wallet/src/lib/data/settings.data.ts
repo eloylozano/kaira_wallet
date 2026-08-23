@@ -95,6 +95,15 @@ export function getSettingsSections(
                         if (useHaptics) haptic();
                     }
                 },
+                {
+                    type: 'action',
+                    label: 'Copias de seguridad',
+                    btnText: 'Configurar',
+                    action: () => {
+                        goto('/settings/backup');
+                        if (useHaptics) haptic();
+                    }
+                },
                 // {
                 //     type: 'action',
                 //     label: 'Exportar historial (CSV)',

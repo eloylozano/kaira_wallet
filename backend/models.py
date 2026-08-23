@@ -95,3 +95,11 @@ class MonthlyBudget(Base):
     month = Column(Integer)
 
     amount = Column(Float)
+
+
+class BackupSetting(Base):
+    __tablename__ = 'backup_settings'
+
+    id = Column(Integer, primary_key=True)
+    frequency_days = Column(Integer, default=7, nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())

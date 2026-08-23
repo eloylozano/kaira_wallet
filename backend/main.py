@@ -5,6 +5,7 @@ from fastapi.security import APIKeyHeader
 import models
 from database import engine, get_db
 from routers import categories, transactions, stats
+from routers import settings as settings_router
 from fastapi.openapi.utils import get_openapi
 
 # 1. Creación de tablas automática
@@ -90,6 +91,7 @@ app.add_middleware(
 app.include_router(categories.router, prefix="/api")
 app.include_router(transactions.router, prefix="/api")
 app.include_router(stats.router, prefix="/api")
+app.include_router(settings_router.router, prefix="/api")
 
 # 5. Eventos de sistema
 @app.on_event("startup")
