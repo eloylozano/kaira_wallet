@@ -21,14 +21,14 @@ def build_transaction_totals(transactions):
     }
 
 
-def get_stats(db):
-    transactions = user_transactions(db).all()
+def get_stats(db, account_id: int | None = None):
+    transactions = user_transactions(db, account_id).all()
     return build_transaction_totals(transactions)
 
 
-def get_stats_by_category(db, transaction_type):
+def get_stats_by_category(db, transaction_type, account_id: int | None = None):
     transactions = (
-        user_transactions(db)
+        user_transactions(db, account_id)
         .filter(models.Transaction.type == transaction_type)
         .all()
     )
@@ -42,10 +42,7 @@ def get_stats_by_category(db, transaction_type):
 
 
 def get_transaction_summary(db, year: int | None = None, account_id: int | None = None):
-    query = paid_user_transactions(db)
-
-    if account_id:
-        query = query.filter(models.Transaction.account_id == account_id)
+    query = paid_user_transactions(db, account_id)
 
     if year:
         query = query.filter(extract("year", models.Transaction.date) == year)

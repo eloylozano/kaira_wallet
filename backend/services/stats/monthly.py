@@ -4,28 +4,26 @@ import models
 from services.stats.common import USER_ID_MOCK, amount, paid_user_transactions, user_transactions
 
 
-def get_daily_expenses(db):
-    results = (
-        db.query(
-            cast(models.Transaction.date, Date).label("day"),
-            func.sum(models.Transaction.amount).label("total"),
-        )
-        .filter(
-            models.Transaction.user_id == USER_ID_MOCK,
-            models.Transaction.type == models.TransactionType.expense,
-        )
-        .group_by("day")
-        .order_by("day")
-        .all()
+def get_daily_expenses(db, account_id: int | None = None):
+    query = db.query(
+        cast(models.Transaction.date, Date).label("day"),
+        func.sum(models.Transaction.amount).label("total"),
+    ).filter(
+        models.Transaction.user_id == USER_ID_MOCK,
+        models.Transaction.type == models.TransactionType.expense,
     )
+    
+    if account_id:
+        query = query.filter(models.Transaction.account_id == account_id)
 
+    results = query.group_by("day").order_by("day").all()
     return {str(r.day): amount(r.total) for r in results}
 
 
-def get_monthly_stats(db, year: int, month: int):
+def get_monthly_stats(db, year: int, month: int, account_id: int | None = None):
     sql_month = month + 1
     transactions = (
-        user_transactions(db)
+        user_transactions(db, account_id)
         .filter(
             extract("year", models.Transaction.date) == year,
             extract("month", models.Transaction.date) == sql_month,
@@ -47,21 +45,21 @@ def get_monthly_stats(db, year: int, month: int):
     }
 
 
-def get_monthly_breakdown(db, year: int):
-    rows = (
-        db.query(
-            extract("month", models.Transaction.date).label("month"),
-            models.Transaction.type,
-            func.sum(models.Transaction.amount).label("total"),
-        )
-        .filter(
-            models.Transaction.user_id == USER_ID_MOCK,
-            extract("year", models.Transaction.date) == year,
-            models.Transaction.is_paid == True,
-        )
-        .group_by("month", models.Transaction.type)
-        .all()
+def get_monthly_breakdown(db, year: int, account_id: int | None = None):
+    query = db.query(
+        extract("month", models.Transaction.date).label("month"),
+        models.Transaction.type,
+        func.sum(models.Transaction.amount).label("total"),
+    ).filter(
+        models.Transaction.user_id == USER_ID_MOCK,
+        extract("year", models.Transaction.date) == year,
+        models.Transaction.is_paid == True,
     )
+
+    if account_id:
+        query = query.filter(models.Transaction.account_id == account_id)
+
+    rows = query.group_by("month", models.Transaction.type).all()
 
     data = {
         month: {
@@ -87,9 +85,9 @@ def get_monthly_breakdown(db, year: int):
     return list(data.values())
 
 
-def get_expense_structure(db, month: int, year: int):
+def get_expense_structure(db, month: int, year: int, account_id: int | None = None):
     transactions = (
-        paid_user_transactions(db)
+        paid_user_transactions(db, account_id)
         .filter(
             models.Transaction.type == models.TransactionType.expense,
             extract("month", models.Transaction.date) == month,
@@ -110,9 +108,9 @@ def get_expense_structure(db, month: int, year: int):
     }
 
 
-def get_monthly_boxes(db, year: int, month: int):
+def get_monthly_boxes(db, year: int, month: int, account_id: int | None = None):
     transactions = (
-        paid_user_transactions(db)
+        paid_user_transactions(db, account_id)
         .filter(
             extract("year", models.Transaction.date) == year,
             extract("month", models.Transaction.date) == month,
@@ -141,4 +139,3 @@ def get_monthly_boxes(db, year: int, month: int):
         "savings": income - expense - invest,
         "net": income - expense,
     }
-

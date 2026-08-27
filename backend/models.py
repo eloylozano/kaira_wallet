@@ -43,11 +43,12 @@ class Account(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
+    description = Column(String, nullable=True)
     is_joint = Column(Boolean, default=False)
     pin_code = Column(String, nullable=True, index=True)  
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    # 🟢 Configuración propia de cada cuenta
+    # Configuración propia de cada cuenta
     monthly_budget = Column(Float, default=0.0, nullable=False)
     inv_target = Column(Float, default=0.0, nullable=False)
     inv_rules = Column(JSON, default=dict, nullable=False)

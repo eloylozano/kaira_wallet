@@ -4,34 +4,33 @@ import models
 from services.stats.common import USER_ID_MOCK, amount
 
 
-def get_equity_evolution(db):
-    rows = (
-        db.query(
-            extract("year", models.Transaction.date).label("year"),
-            extract("month", models.Transaction.date).label("month"),
-            func.sum(
-                case(
-                    (models.Transaction.type == models.TransactionType.income, models.Transaction.amount),
-                    (models.Transaction.type == models.TransactionType.expense, -models.Transaction.amount),
-                    (models.Transaction.type == models.TransactionType.invest, -models.Transaction.amount),
-                    else_=0,
-                )
-            ).label("cash_change"),
-            func.sum(
-                case(
-                    (models.Transaction.type == models.TransactionType.invest, models.Transaction.amount),
-                    else_=0,
-                )
-            ).label("invest_change"),
-        )
-        .filter(
-            models.Transaction.user_id == USER_ID_MOCK,
-            models.Transaction.is_paid == True,
-        )
-        .group_by("year", "month")
-        .order_by("year", "month")
-        .all()
+def get_equity_evolution(db, account_id: int | None = None):
+    query = db.query(
+        extract("year", models.Transaction.date).label("year"),
+        extract("month", models.Transaction.date).label("month"),
+        func.sum(
+            case(
+                (models.Transaction.type == models.TransactionType.income, models.Transaction.amount),
+                (models.Transaction.type == models.TransactionType.expense, -models.Transaction.amount),
+                (models.Transaction.type == models.TransactionType.invest, -models.Transaction.amount),
+                else_=0,
+            )
+        ).label("cash_change"),
+        func.sum(
+            case(
+                (models.Transaction.type == models.TransactionType.invest, models.Transaction.amount),
+                else_=0,
+            )
+        ).label("invest_change"),
+    ).filter(
+        models.Transaction.user_id == USER_ID_MOCK,
+        models.Transaction.is_paid == True,
     )
+
+    if account_id:
+        query = query.filter(models.Transaction.account_id == account_id)
+
+    rows = query.group_by("year", "month").order_by("year", "month").all()
 
     history = []
     cum_cash = 0
@@ -53,8 +52,8 @@ def get_equity_evolution(db):
     return history
 
 
-def get_asset_type_distribution(db):
-    results = (
+def get_asset_type_distribution(db, account_id: int | None = None):
+    query = (
         db.query(
             models.Category.name.label("cat_name"),
             models.Transaction.description.label("asset_name"),
@@ -66,9 +65,12 @@ def get_asset_type_distribution(db):
             models.Transaction.type == models.TransactionType.invest,
             models.Transaction.is_paid == True,
         )
-        .group_by(models.Category.name, models.Transaction.description)
-        .all()
     )
+
+    if account_id:
+        query = query.filter(models.Transaction.account_id == account_id)
+
+    results = query.group_by(models.Category.name, models.Transaction.description).all()
 
     hierarchy = {}
     for row in results:
@@ -84,4 +86,3 @@ def get_asset_type_distribution(db):
         )
 
     return list(hierarchy.values())
-

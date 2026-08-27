@@ -5,10 +5,10 @@ import models
 from services.stats.common import USER_ID_MOCK, amount
 
 
-def get_expense_distribution(db, year: int, month: int):
+def get_expense_distribution(db, year: int, month: int, account_id: int | None = None):
     parent_category = aliased(models.Category)
 
-    results = (
+    query = (
         db.query(
             parent_category.name.label("parent_name"),
             models.Category.name.label("sub_name"),
@@ -23,9 +23,12 @@ def get_expense_distribution(db, year: int, month: int):
             extract("year", models.Transaction.date) == year,
             extract("month", models.Transaction.date) == month,
         )
-        .group_by(parent_category.name, models.Category.name)
-        .all()
     )
+
+    if account_id:
+        query = query.filter(models.Transaction.account_id == account_id)
+
+    results = query.group_by(parent_category.name, models.Category.name).all()
 
     data = {}
     for row in results:
@@ -40,11 +43,11 @@ def get_expense_distribution(db, year: int, month: int):
     return list(data.values())
 
 
-def get_pareto_data(db, year: int):
+def get_pareto_data(db, year: int, account_id: int | None = None):
     parent_category = aliased(models.Category, name="parent_cat")
     base_category = models.Category
 
-    results = (
+    query = (
         db.query(
             func.coalesce(parent_category.name, base_category.name).label("group_name"),
             func.round(func.cast(func.sum(models.Transaction.amount), Numeric), 2).label("amount"),
@@ -57,7 +60,13 @@ def get_pareto_data(db, year: int):
             models.Transaction.is_paid == True,
             extract("year", models.Transaction.date) == year,
         )
-        .group_by(func.coalesce(parent_category.name, base_category.name))
+    )
+
+    if account_id:
+        query = query.filter(models.Transaction.account_id == account_id)
+
+    results = (
+        query.group_by(func.coalesce(parent_category.name, base_category.name))
         .order_by(func.sum(models.Transaction.amount).desc())
         .all()
     )
@@ -80,21 +89,21 @@ def get_pareto_data(db, year: int):
     return pareto_data
 
 
-def get_investment_distribution(db, year: int, month: int | None = None):
+def get_investment_distribution(db, year: int, month: int | None = None, account_id: int | None = None):
     parent_category = aliased(models.Category, name="parent_cat")
 
-    balance_rows = (
-        db.query(
-            models.Transaction.type,
-            func.sum(models.Transaction.amount).label("total"),
-        )
-        .filter(
-            models.Transaction.user_id == USER_ID_MOCK,
-            models.Transaction.is_paid == True,
-        )
-        .group_by(models.Transaction.type)
-        .all()
+    balance_query = db.query(
+        models.Transaction.type,
+        func.sum(models.Transaction.amount).label("total"),
+    ).filter(
+        models.Transaction.user_id == USER_ID_MOCK,
+        models.Transaction.is_paid == True,
     )
+
+    if account_id:
+        balance_query = balance_query.filter(models.Transaction.account_id == account_id)
+
+    balance_rows = balance_query.group_by(models.Transaction.type).all()
 
     totals = {row.type: amount(row.total) for row in balance_rows}
     cash = (
@@ -119,6 +128,9 @@ def get_investment_distribution(db, year: int, month: int | None = None):
             extract("year", models.Transaction.date) == year,
         )
     )
+
+    if account_id:
+        query = query.filter(models.Transaction.account_id == account_id)
 
     if month:
         query = query.filter(extract("month", models.Transaction.date) == month)
@@ -171,4 +183,3 @@ def get_investment_distribution(db, year: int, month: int | None = None):
         },
         "allocation": allocation,
     }
-

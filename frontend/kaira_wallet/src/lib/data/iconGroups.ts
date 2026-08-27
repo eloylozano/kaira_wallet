@@ -28,7 +28,9 @@ export const iconGroups = {
 		'house',
 		'lock',
 		'unlock',
-		'blinds'
+		'blinds',
+		'house-wify',
+		'house-plus',
 	],
 
 	food: [
@@ -42,7 +44,8 @@ export const iconGroups = {
 		'wine',
 		'ice-cream',
 		'cookie',
-		'chef-hat'
+		'chef-hat',
+		'soup'
 	],
 
 	work: [
@@ -55,7 +58,8 @@ export const iconGroups = {
 		'folder',
 		'clipboard',
 		'chart-bar',
-		'globe'
+		'globe',
+		'monitor-smartphone',
 	],
 
 	transport: [
@@ -69,7 +73,8 @@ export const iconGroups = {
 		'truck',
 		'scooter',
 		'car-taxi-front',
-		'rocket'
+		'rocket',
+		'fuel'
 	],
 
 	life: [
@@ -84,10 +89,12 @@ export const iconGroups = {
 		'moon',
 		'cloud',
 		'smile',
-        'wrench',
+		'wrench',
 		'cat',
-        'shirt',
-        'trousers',
+		'shirt',
+		'trousers',
+		'scroll-text',
+		'gift',
 	],
 
 	basics: [
@@ -101,7 +108,8 @@ export const iconGroups = {
 		'minus',
 		'x',
 		'zap',
-		'flame'
+		'flame', 
+		'toy-brick'
 	]
 } as const;
 

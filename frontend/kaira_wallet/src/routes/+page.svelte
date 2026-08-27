@@ -1,5 +1,4 @@
 <script lang="ts">
-	import HomeHeader from '$lib/components/dashboard/HomeHeader.svelte';
 	import BalanceCard from '$lib/components/dashboard/BalanceCard.svelte';
 	import HomeChart from '$lib/components/stats/charts/HomeChart.svelte';
 	import BudgetProgress from '$lib/components/dashboard/BudgetProgress.svelte';
@@ -9,13 +8,35 @@
 	import { statsService } from '$lib/stores/domain/stats.svelte';
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
+	import { browser } from '$app/environment';
 
 	let loading = $state(true);
+	let accountName = $state('Kaira Wallet');
+	let accountDescription = $state('Kaira Wallet');
 
-	// Cargamos datos al montar el componente
+	function loadActiveAccountData() {
+		if (browser) {
+			try {
+				const raw = localStorage.getItem('kaira_active_account');
+				if (raw) {
+					const parsed = JSON.parse(raw);
+					if (parsed?.name) {
+						accountName = parsed.name;
+					}
+					if (parsed?.description) {
+						accountDescription = parsed.description;
+					}
+				}
+			} catch (e) {
+				console.error('Error leyendo la cuenta activa', e);
+			}
+		}
+	}
+
 	onMount(async () => {
+		loadActiveAccountData();
+
 		try {
-			// Pedimos los últimos movimientos para la lista
 			await transactionsStore.fetch({
 				limit: 50,
 				sort: 'desc'
@@ -24,7 +45,6 @@
 			loading = false;
 		}
 
-		// Sincronizamos el mes actual en el servicio de stats
 		const now = new Date();
 		statsService.selectedMonth = now.getMonth();
 		statsService.selectedYear = now.getFullYear();
@@ -35,7 +55,14 @@
 </script>
 
 <div class="mx-auto max-w-xl pb-24">
-	<HomeHeader />
+	<header class="flex items-end justify-between pt-8">
+		<div>
+			<p class="text-[10px] font-black tracking-[0.2em] text-primary/70 uppercase">
+				{accountDescription}
+			</p>
+			<h1 class="text-3xl font-black tracking-tighter uppercase italic">Hola, {accountName}</h1>
+		</div>
+	</header>
 
 	<div class="isolate transform-gpu [backface-visibility:hidden] [perspective:1000px]">
 		<BalanceCard />
