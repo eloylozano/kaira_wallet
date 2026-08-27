@@ -1,7 +1,8 @@
 <script lang="ts">
-    import { auth } from '$lib/stores/session/auth'; // Importamos el store refactorizado
+    import { auth } from '$lib/stores/session/auth';
     import { haptics } from '$lib/utils/device/haptic';
     import { fade, scale } from 'svelte/transition';
+    import { apiUrl, getActivePin, setActivePin } from '$lib/config/api';
 
     let { isOpen, onTouchOutside, onComplete } = $props();
 
@@ -15,15 +16,14 @@
         if (pin.length < 4) pin += n;
 
         if (pin.length === 4) {
-            // Un pequeño delay para que el usuario vea el cuarto punto relleno
             setTimeout(validate, 200);
         }
     }
 
-    function validate() {
+    async function validate() {
         if (step === 1) {
-            // Usamos la validación centralizada del store
-            if (auth.verifyPin(pin)) {
+            const isValid = await auth.verifyPinAsync(pin);
+            if (isValid) {
                 haptics.success();
                 pin = '';
                 step = 2;
@@ -31,11 +31,28 @@
                 triggerError();
             }
         } else {
-            // Actualizamos el PIN a través del store
-            if (auth.updatePin(pin)) {
-                haptics.success();
-                resetAndClose();
-            } else {
+            try {
+                const currentPin = getActivePin();
+                const res = await fetch(apiUrl('/accounts/me'), {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Kaira-PIN': currentPin
+                    },
+                    body: JSON.stringify({ pin_code: pin })
+                });
+
+                if (res.ok) {
+                    const updatedAccount = await res.json();
+                    setActivePin(pin, updatedAccount);
+                    haptics.success();
+                    resetAndClose();
+                    window.location.reload();
+                } else {
+                    triggerError();
+                }
+            } catch (err) {
+                console.error('Error al cambiar el PIN:', err);
                 triggerError();
             }
         }
@@ -101,6 +118,7 @@
             <div class="relative z-10 grid grid-cols-3 gap-4">
                 {#each ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'BACK', '0', 'DEL'] as key}
                     <button
+                        type="button"
                         onclick={() => {
                             if (key === 'DEL') {
                                 haptics.tap();
@@ -126,7 +144,6 @@
 {/if}
 
 <style>
-	/* Usamos la variable de texto global para que cambie en modo claro */
 	.modal-text {
 		color: var(--text-main);
 	}
@@ -136,13 +153,11 @@
 		border: 1px solid rgba(255, 255, 255, 0.08);
 	}
 
-	/* Ajuste para que los botones se vean en modo claro */
 	:global([data-theme='light']) .glass-button {
 		background: rgba(0, 0, 0, 0.05);
 		border: 1px solid rgba(0, 0, 0, 0.08);
 	}
 
-	/* Estilo del panel en modo claro */
 	:global([data-theme='light']) .glass-panel {
 		background-color: rgba(255, 255, 255, 0.95);
 		border-color: rgba(0, 0, 0, 0.1);

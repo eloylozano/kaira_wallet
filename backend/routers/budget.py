@@ -3,8 +3,12 @@ from sqlalchemy.orm import Session
 from sqlalchemy import asc, desc, or_
 from typing import List, Optional
 from datetime import datetime
-import models, schemas
+import models
+import models
+import schemas
 from database import get_db
+
+USER_ID_MOCK = 1
 
 router = APIRouter()
 

@@ -10,7 +10,8 @@ from sqlalchemy import (
     Boolean,
     Text,
     Float,
-    Table
+    Table,
+    JSON
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -41,10 +42,16 @@ class Account(Base):
     __tablename__ = "accounts"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, nullable=False)  # Ej: "Personal Eloy", "Cuenta Conjunta"
+    name = Column(String, nullable=False)
     is_joint = Column(Boolean, default=False)
     pin_code = Column(String, nullable=True, index=True)  
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+    # 🟢 Configuración propia de cada cuenta
+    monthly_budget = Column(Float, default=0.0, nullable=False)
+    inv_target = Column(Float, default=0.0, nullable=False)
+    inv_rules = Column(JSON, default=dict, nullable=False)
+    inv_colors = Column(JSON, default=dict, nullable=False)
 
     # Relaciones
     users = relationship("User", secondary=user_accounts, back_populates="accounts")
@@ -93,7 +100,7 @@ class Category(Base):
     )
 
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True)
-    account_id = Column(Integer, ForeignKey("accounts.id"), nullable=True)  # Opcional si la categoría es propia de una cuenta
+    account_id = Column(Integer, ForeignKey("accounts.id"), nullable=True)
     is_predefined = Column(Boolean, default=False)
     icon = Column(String, nullable=True)
 
@@ -115,7 +122,7 @@ class Transaction(Base):
     date = Column(DateTime(timezone=True), nullable=True, server_default=func.now())
 
     category_id = Column(Integer, ForeignKey("categories.id"), nullable=False)
-    account_id = Column(Integer, ForeignKey("accounts.id"), nullable=False)  # Enlace con la Cuenta/Perfil activa
+    account_id = Column(Integer, ForeignKey("accounts.id"), nullable=False)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     description = Column(String, nullable=True)

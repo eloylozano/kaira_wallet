@@ -8,7 +8,7 @@
 	}>();
 </script>
 
-<div class="space-y-3">
+<div class="space-y-3 mb-22">
 
 	{#each items as cat}
 

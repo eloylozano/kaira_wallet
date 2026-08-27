@@ -1,16 +1,40 @@
-// src/lib/stores/domain/settings.svelte.ts
 import { browser } from '$app/environment';
+import { apiUrl } from '$lib/config/api';
 
 class SettingsStore {
-    // Leemos el valor inicial de localStorage si existe
-    #initialBudget = browser ? Number(localStorage.getItem('monthly_budget')) || 350 : 350;
-    
-    monthlyBudget = $state(this.#initialBudget);
+    monthlyBudget = $state<number>(350);
 
-    updateBudget(newValue: number) {
-        this.monthlyBudget = newValue;
-        if (browser) {
-            localStorage.setItem('monthly_budget', newValue.toString());
+    // Cargar desde la API usando el PIN activo
+    async fetchSettings(pin: string) {
+        try {
+            const res = await fetch(apiUrl('/accounts/me'), {
+                headers: { 'X-Kaira-PIN': pin }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                this.monthlyBudget = data.monthly_budget ?? 350;
+            }
+        } catch (err) {
+            console.error('Error cargando presupuesto:', err);
+        }
+    }
+
+    // Guardar hacia la API
+    async updateBudget(newValue: number, pin: string) {
+        try {
+            const res = await fetch(apiUrl('/accounts/me'), {
+                method: 'PATCH',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'X-Kaira-PIN': pin 
+                },
+                body: JSON.stringify({ monthly_budget: newValue })
+            });
+            if (res.ok) {
+                this.monthlyBudget = newValue;
+            }
+        } catch (err) {
+            console.error('Error actualizando presupuesto:', err);
         }
     }
 }

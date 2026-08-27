@@ -1,172 +1,157 @@
-import { apiUrl, getApiBaseUrl, KAIRA_PIN } from '$lib/config/api';
+import { apiUrl, getApiBaseUrl, getApiHeaders } from '$lib/config/api';
 
 let _transactions = $state<any[]>([]);
 let _total = $state(0);
 
 export const transactionsStore = {
-	get all() {
-		return _transactions;
-	},
+    get all() {
+        return _transactions;
+    },
 
-	get total() {
-		return _total;
-	},
+    get total() {
+        return _total;
+    },
 
-	set(data: any[]) {
-		_transactions = Array.isArray(data) ? [...data] : [];
-	},
+    set(data: any[]) {
+        _transactions = Array.isArray(data) ? [...data] : [];
+    },
 
-	findLocal(id: number) {
-		return _transactions.find(t => t.id === id);
-	},
+    findLocal(id: number) {
+        return _transactions.find(t => t.id === id);
+    },
 
-	async getById(id: number) {
-		const local = this.findLocal(id);
+    async getById(id: number) {
+        const local = this.findLocal(id);
 
-		if (local) return local;
+        if (local) return local;
 
-		try {
-			const baseUrl = getApiBaseUrl();
+        try {
+            const baseUrl = getApiBaseUrl();
 
-			const res = await fetch(
-				`${baseUrl}/transactions/${id}`,
-				{
-					headers: {
-						'X-Kaira-PIN': KAIRA_PIN
-					}
-				}
-			);
+            const res = await fetch(
+                `${baseUrl}/transactions/${id}`,
+                {
+                    headers: getApiHeaders()
+                }
+            );
 
-			if (!res.ok) return null;
+            if (!res.ok) return null;
 
-			return await res.json();
+            return await res.json();
 
-		} catch (err) {
-			console.error('Error loading transaction', err);
-			return null;
-		}
-	},
+        } catch (err) {
+            console.error('Error loading transaction', err);
+            return null;
+        }
+    },
 
+    async getGlobalStats() {
+        try {
+            const res = await fetch(apiUrl('/stats/'), {
+                headers: getApiHeaders()
+            });
+            if (res.ok) {
+                return await res.json();
+            }
+        } catch (err) {
+            console.error("Error cargando stats globales", err);
+        }
+        return null;
+    },
+    
+    async update(id: number, payload: any) {
+        try {
+            const baseUrl = getApiBaseUrl();
 
-	// Dentro de transactionsStore
-	async getGlobalStats() {
-		try {
-			const res = await fetch(apiUrl('/stats/'), {
-				headers: { 'X-Kaira-PIN': KAIRA_PIN }
-			});
-			if (res.ok) {
-				return await res.json(); // Esto devuelve total_income, total_expense, etc.
-			}
-		} catch (err) {
-			console.error("Error cargando stats globales", err);
-		}
-		return null;
-	},
-	
-	async update(id: number, payload: any) {
-		try {
-			const baseUrl = getApiBaseUrl();
+            const res = await fetch(
+                `${baseUrl}/transactions/${id}`,
+                {
+                    method: 'PUT',
+                    headers: getApiHeaders(),
+                    body: JSON.stringify(payload)
+                }
+            );
 
-			const res = await fetch(
-				`${baseUrl}/transactions/${id}`,
-				{
-					method: 'PUT',
-					headers: {
-						'Content-Type': 'application/json',
-						'X-Kaira-PIN': KAIRA_PIN
-					},
-					body: JSON.stringify(payload)
-				}
-			);
+            if (!res.ok) {
+                throw new Error('Error updating transaction');
+            }
 
-			if (!res.ok) {
-				throw new Error('Error updating transaction');
-			}
+            const updated = await res.json();
 
-			const updated = await res.json();
+            _transactions = _transactions.map(t =>
+                t.id === id ? updated : t
+            );
 
-			_transactions = _transactions.map(t =>
-				t.id === id ? updated : t
-			);
+            return updated;
 
-			return updated;
+        } catch (err) {
+            console.error(err);
+            return null;
+        }
+    },
 
-		} catch (err) {
-			console.error(err);
-			return null;
-		}
-	},
+    async fetch(params?: {
+        transaction_type?: string;
+        is_paid?: boolean;
+        search?: string;
+        skip?: number;
+        limit?: number;
+        sort?: 'asc' | 'desc';
+    }) {
 
-	async fetch(params?: {
-		transaction_type?: string;
-		is_paid?: boolean;
-		search?: string;
-		skip?: number;
-		limit?: number;
-		sort?: 'asc' | 'desc';
-	}) {
+        const baseUrl = getApiBaseUrl();
 
-		const baseUrl = getApiBaseUrl();
+        const query = new URLSearchParams();
 
-		const query = new URLSearchParams();
+        if (params?.transaction_type) {
+            query.append('transaction_type', params.transaction_type);
+        }
 
-		if (params?.transaction_type) {
-			query.append('transaction_type', params.transaction_type);
-		}
+        if (params?.is_paid !== undefined) {
+            query.append('is_paid', String(params.is_paid));
+        }
 
-		if (params?.is_paid !== undefined) {
-			query.append('is_paid', String(params.is_paid));
-		}
+        if (params?.sort) {
+            query.append('sort', params.sort);
+        }
 
-		if (params?.sort) {
-			query.append('sort', params.sort);
-		}
+        if (params?.search) {
+            query.append('search', params.search);
+        }
 
-		if (params?.search) {
-			query.append('search', params.search);
-		}
+        const countQuery = new URLSearchParams(query);
 
-		const countQuery = new URLSearchParams(query);
+        query.append('skip', String(params?.skip ?? 0));
+        query.append('limit', String(params?.limit ?? 20));
 
-		query.append('skip', String(params?.skip ?? 0));
-		query.append('limit', String(params?.limit ?? 20));
+        try {
+            const [resData, resCount] = await Promise.all([
+                fetch(
+                    `${baseUrl}/transactions/?${query}`,
+                    {
+                        headers: getApiHeaders()
+                    }
+                ),
 
-		try {
+                fetch(
+                    `${baseUrl}/transactions/count?${countQuery}`,
+                    {
+                        headers: getApiHeaders()
+                    }
+                )
+            ]);
 
-			const [resData, resCount] = await Promise.all([
-				fetch(
-					`${baseUrl}/transactions/?${query}`,
-					{
-						headers: {
-							'X-Kaira-PIN': KAIRA_PIN
-						}
-					}
-				),
+            if (resData.ok) {
+                this.set(await resData.json());
+            }
 
-				fetch(
-					`${baseUrl}/transactions/count?${countQuery}`,
-					{
-						headers: {
-							'X-Kaira-PIN': KAIRA_PIN
-						}
-					}
-				)
-			]);
+            if (resCount.ok) {
+                const json = await resCount.json();
+                _total = json.total;
+            }
 
-			if (resData.ok) {
-				this.set(await resData.json());
-			}
-
-			if (resCount.ok) {
-				const json = await resCount.json();
-				_total = json.total;
-			}
-
-		} catch (err) {
-			console.error('Store error:', err);
-		}
-
-
-	}
-
+        } catch (err) {
+            console.error('Store error:', err);
+        }
+    }
 };

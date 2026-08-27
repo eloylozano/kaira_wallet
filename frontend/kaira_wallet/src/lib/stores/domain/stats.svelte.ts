@@ -1,70 +1,113 @@
-import { apiUrl, getActivePin, getApiHeaders } from '$lib/config/api';
+import { apiUrl, getApiHeaders } from '$lib/config/api';
 import { transactionsStore } from '$lib/stores/domain/transactions.svelte';
+import { activeAccount } from '$lib/stores/account'; // <--- Importa tu store de cuentas correcto
 
 class StatsService {
     selectedYear = $state(new Date().getFullYear());
     selectedMonth = $state(new Date().getMonth());
 
-    // Estado principal (NORMALIZADO)
     monthlyStatsData = $state({
         income: 0,
         expense: 0,
         invest: 0,
         savings: 0,
         net: 0,
-
         fixed_total: 0,
         variable_total: 0,
         total_expense: 0,
         fixed_ratio: 0,
-
         cash_ratio: 0,
         invested_ratio: 0
     });
 
     monthlyBreakdown = $state<any[]>([]);
 
-    // Distribución separada
     distributionData = $state({
         expenses: [] as any[],
         pareto: [] as any[],
         investments: {
-            cash_ratio: {
-                cash: 0,
-                invested: 0,
-                ratio: 0
-            },
+            cash_ratio: { cash: 0, invested: 0, ratio: 0 },
             allocation: [] as any[]
         }
     });
+
+    summaryData = $state({
+        total_income: 0,
+        total_expense: 0,
+        total_invest: 0
+    });
+
+    globalBalance = $state(0);
+    equityEvolution = $state<any[]>([]);
+    assetTypes = $state<any[]>([]);
+    equityLoading = $state(false);
+
+    projectionData = $state({
+        current_balance: 0,
+        avg_monthly_savings: 0,
+        projected_december: 0,
+        months_left: 0
+    });
+
+    constructor() {
+        if (typeof window !== 'undefined') {
+            // Nos suscribimos directamente al store para detectar cuando cambia la cuenta activa
+            activeAccount.subscribe((acc) => {
+                if (acc) {
+                    // Damos un pequeño respiro para asegurar que localStorage esté actualizado
+                    setTimeout(() => {
+                        this.reloadAll();
+                    }, 10);
+                }
+            });
+
+            window.addEventListener('kaira:account-changed', () => {
+                this.reloadAll();
+            });
+        }
+    }
+
+    reloadAll() {
+        this.resetState();
+        this.fetchMonthlyStats();
+        this.fetchDistributionData();
+        this.fetchHomeData(this.selectedYear);
+        this.fetchFreedomProjection();
+        this.fetchEquityData();
+    }
+
+    resetState() {
+        this.monthlyStatsData = {
+            income: 0, expense: 0, invest: 0, savings: 0, net: 0,
+            fixed_total: 0, variable_total: 0, total_expense: 0, fixed_ratio: 0,
+            cash_ratio: 0, invested_ratio: 0
+        };
+        this.monthlyBreakdown = [];
+        this.distributionData = {
+            expenses: [],
+            pareto: [],
+            investments: { cash_ratio: { cash: 0, invested: 0, ratio: 0 }, allocation: [] }
+        };
+        this.summaryData = { total_income: 0, total_expense: 0, total_invest: 0 };
+        this.globalBalance = 0;
+        this.equityEvolution = [];
+        this.assetTypes = [];
+        this.projectionData = { current_balance: 0, avg_monthly_savings: 0, projected_december: 0, months_left: 0 };
+    }
 
     async fetchMonthlyStats() {
         try {
             const sqlMonth = this.selectedMonth + 1;
 
             const [boxesRes, breakdownRes, structureRes] = await Promise.all([
-                fetch(
-                    apiUrl(`/stats/monthly-boxes?year=${this.selectedYear}&month=${sqlMonth}`),
-                    { headers: getApiHeaders() }
-                ),
-
-                fetch(
-                    apiUrl(`/stats/monthly-breakdown?year=${this.selectedYear}`),
-                    { headers: getApiHeaders() }
-                ),
-
-                fetch(
-                    apiUrl(`/stats/expense-structure?year=${this.selectedYear}&month=${sqlMonth}`),
-                    { headers: getApiHeaders() }
-                )
+                fetch(apiUrl(`/stats/monthly-boxes?year=${this.selectedYear}&month=${sqlMonth}`), { headers: getApiHeaders() }),
+                fetch(apiUrl(`/stats/monthly-breakdown?year=${this.selectedYear}`), { headers: getApiHeaders() }),
+                fetch(apiUrl(`/stats/expense-structure?year=${this.selectedYear}&month=${sqlMonth}`), { headers: getApiHeaders() })
             ]);
 
             if (boxesRes.ok) {
                 const boxes = await boxesRes.json();
-                this.monthlyStatsData = {
-                    ...this.monthlyStatsData,
-                    ...boxes
-                };
+                this.monthlyStatsData = { ...this.monthlyStatsData, ...boxes };
             }
 
             if (breakdownRes.ok) {
@@ -73,10 +116,7 @@ class StatsService {
 
             if (structureRes.ok) {
                 const structure = await structureRes.json();
-                this.monthlyStatsData = {
-                    ...this.monthlyStatsData,
-                    ...structure
-                };
+                this.monthlyStatsData = { ...this.monthlyStatsData, ...structure };
             }
         } catch (err) {
             console.error('Error cargando estadísticas:', err);
@@ -88,18 +128,9 @@ class StatsService {
             const sqlMonth = this.selectedMonth + 1;
 
             const [expRes, paretoRes, investRes] = await Promise.all([
-                fetch(
-                    apiUrl(`/stats/distribution/expenses?year=${this.selectedYear}&month=${sqlMonth}`),
-                    { headers: getApiHeaders() }
-                ),
-                fetch(
-                    apiUrl(`/stats/distribution/pareto?year=${this.selectedYear}`),
-                    { headers: getApiHeaders() }
-                ),
-                fetch(
-                    apiUrl(`/stats/distribution/investments?year=${this.selectedYear}&month=${sqlMonth}`),
-                    { headers: getApiHeaders() }
-                )
+                fetch(apiUrl(`/stats/distribution/expenses?year=${this.selectedYear}&month=${sqlMonth}`), { headers: getApiHeaders() }),
+                fetch(apiUrl(`/stats/distribution/pareto?year=${this.selectedYear}`), { headers: getApiHeaders() }),
+                fetch(apiUrl(`/stats/distribution/investments?year=${this.selectedYear}&month=${sqlMonth}`), { headers: getApiHeaders() })
             ]);
 
             if (expRes.ok) {
@@ -123,7 +154,6 @@ class StatsService {
         }
     }
 
-    // utilidades UI
     get availableYears() {
         const years = new Set<number>();
         const all = transactionsStore.all ?? [];
@@ -144,9 +174,7 @@ class StatsService {
     get availableMonths() {
         return Array.from({ length: 12 }, (_, i) => ({
             value: i,
-            label: new Intl.DateTimeFormat('es-ES', {
-                month: 'long'
-            }).format(new Date(2000, i, 1))
+            label: new Intl.DateTimeFormat('es-ES', { month: 'long' }).format(new Date(2000, i, 1))
         }));
     }
 
@@ -154,36 +182,20 @@ class StatsService {
         const year = Number(this.selectedYear);
         const month = Number(this.selectedMonth);
         const now = new Date();
-
         const totalDays = new Date(year, month + 1, 0).getDate();
 
         if (now.getFullYear() === year && now.getMonth() === month) {
-            return {
-                current: totalDays - now.getDate() + 1,
-                total: totalDays
-            };
+            return { current: totalDays - now.getDate() + 1, total: totalDays };
         }
 
         return { current: totalDays, total: totalDays };
     }
 
-    summaryData = $state({
-        total_income: 0,
-        total_expense: 0,
-        total_invest: 0
-    });
-
-    globalBalance = $state(0);
-
     async fetchHomeData(year: number) {
         try {
             const [summaryRes, globalRes] = await Promise.all([
-                fetch(apiUrl(`/stats/summary?year=${year}`), {
-                    headers: getApiHeaders()
-                }),
-                fetch(apiUrl('/stats/summary'), {
-                    headers: getApiHeaders()
-                })
+                fetch(apiUrl(`/stats/summary?year=${year}`), { headers: getApiHeaders() }),
+                fetch(apiUrl('/stats/summary'), { headers: getApiHeaders() })
             ]);
 
             if (summaryRes.ok) {
@@ -192,18 +204,12 @@ class StatsService {
 
             if (globalRes.ok) {
                 const global = await globalRes.json();
-                this.globalBalance = Number(global.total_income) -
-                    Number(global.total_expense) -
-                    Number(global.total_invest);
+                this.globalBalance = Number(global.total_income) - Number(global.total_expense) - Number(global.total_invest);
             }
         } catch (err) {
             console.error('Error cargando datos del Home:', err);
         }
     }
-
-    equityEvolution = $state<any[]>([]);
-    assetTypes = $state<any[]>([]);
-    equityLoading = $state(false);
 
     async fetchEquityData() {
         this.equityLoading = true;
@@ -232,19 +238,10 @@ class StatsService {
         }
     }
 
-    projectionData = $state({
-        current_balance: 0,
-        avg_monthly_savings: 0,
-        projected_december: 0,
-        months_left: 0
-    });
-
     async fetchFreedomProjection() {
         try {
             const year = this.selectedYear || new Date().getFullYear();
-            const res = await fetch(apiUrl(`/stats/freedom-projection?year=${year}`), {
-                headers: getApiHeaders()
-            });
+            const res = await fetch(apiUrl(`/stats/freedom-projection?year=${year}`), { headers: getApiHeaders() });
             if (res.ok) {
                 this.projectionData = await res.json();
             }

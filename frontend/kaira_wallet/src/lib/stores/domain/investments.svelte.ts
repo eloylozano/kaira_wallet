@@ -1,12 +1,10 @@
-// src/lib/stores/domain/investments.svelte.ts
-import { browser } from '$app/environment';
+import { apiUrl } from '$lib/config/api';
 
 export interface InvestmentRules {
     [key: string]: string;
 }
 
 class InvestmentStore {
-    // Estado reactivo para las reglas y colores
     rules = $state<InvestmentRules>({
         '500': 'S&P 500',
         'World': 'MSCI World',
@@ -35,47 +33,69 @@ class InvestmentStore {
         'Otros': '#64748b'
     });
 
-    targetSavings = $state<number>(50000);
-    constructor() {
-        if (browser) {
-            const savedRules = localStorage.getItem('inv_rules');
-            const savedColors = localStorage.getItem('inv_colors');
-            const savedTarget = localStorage.getItem('inv_target');
-            if (savedTarget) this.targetSavings = Number(savedTarget);
-            if (savedRules) this.rules = JSON.parse(savedRules);
-            if (savedColors) this.categoryColors = JSON.parse(savedColors);
+    targetSavings = $state<number>(0);
+
+    async fetchSettings(pin: string) {
+        if (!pin) return;
+        try {
+            const res = await fetch(apiUrl('/accounts/me'), {
+                headers: { 'X-Kaira-PIN': pin }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                
+                if (data.inv_target !== null && data.inv_target !== undefined) {
+                    this.targetSavings = Number(data.inv_target);
+                }
+
+                if (data.inv_rules) {
+                    this.rules = typeof data.inv_rules === 'string' ? JSON.parse(data.inv_rules) : data.inv_rules;
+                }
+                if (data.inv_colors) {
+                    this.categoryColors = typeof data.inv_colors === 'string' ? JSON.parse(data.inv_colors) : data.inv_colors;
+                }
+            }
+        } catch (err) {
+            console.error('Error cargando inversiones:', err);
         }
     }
 
-    addRule(pattern: string, alias: string) {
-        this.rules[pattern] = alias;
-        this.save();
-    }
-
-    removeRule(pattern: string) {
-        delete this.rules[pattern];
-        this.save();
-    }
-
-    updateColor(category: string, color: string) {
-        this.categoryColors[category] = color;
-        this.save();
-    }
-
-    updateTarget(value: number) {
+    async updateTarget(value: number, pin: string) {
         this.targetSavings = value;
-        this.save();
+        await this.save(pin, { inv_target: value });
     }
 
-    private save() {
-        if (browser) {
-            localStorage.setItem('inv_rules', JSON.stringify(this.rules));
-            localStorage.setItem('inv_colors', JSON.stringify(this.categoryColors));
-            localStorage.setItem('inv_target', this.targetSavings.toString());
+    async addRule(pattern: string, alias: string, pin: string) {
+        this.rules[pattern] = alias;
+        await this.save(pin, { inv_rules: JSON.stringify(this.rules) });
+    }
+
+    async removeRule(pattern: string, pin: string) {
+        delete this.rules[pattern];
+        await this.save(pin, { inv_rules: JSON.stringify(this.rules) });
+    }
+
+    async updateColor(category: string, color: string, pin: string) {
+        this.categoryColors[category] = color;
+        await this.save(pin, { inv_colors: JSON.stringify(this.categoryColors) });
+    }
+
+    private async save(pin: string, payload: Record<string, any>) {
+        if (!pin) return;
+        try {
+            await fetch(apiUrl('/accounts/me'), {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Kaira-PIN': pin
+                },
+                body: JSON.stringify(payload)
+            });
+        } catch (err) {
+            console.error('Error guardando inversiones:', err);
         }
     }
 
-    // La función que usarás en tus componentes para limpiar nombres
     getShortName(fullName: string): string {
         const nameUpper = fullName.toUpperCase();
         for (const [key, alias] of Object.entries(this.rules)) {
@@ -85,10 +105,6 @@ class InvestmentStore {
         }
         return fullName.length > 15 ? fullName.slice(0, 13) + '..' : fullName;
     }
-
-
-
-
 }
 
 export const investmentStore = new InvestmentStore();

@@ -1,52 +1,74 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Header
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 
-import models
-import schemas
 from database import get_db
+from models import Account
+from schemas.accounts import Account as AccountResponse, AccountCreate, AccountUpdate
 
-router = APIRouter(
-    prefix="/accounts",
-    tags=["Accounts"]
-)
+router = APIRouter(prefix="/accounts", tags=["Accounts"])
 
-# 1. OBTENER TODAS LAS CUENTAS (Para verlas en Swagger)
-@router.get("/", response_model=List[schemas.Account])
-def get_accounts(db: Session = Depends(get_db)):
-    return db.query(models.Account).all()
+@router.get("/", response_model=List[AccountResponse])
+def get_accounts(
+    x_kaira_pin: Optional[str] = Header(None), 
+    db: Session = Depends(get_db)
+):
+    if x_kaira_pin:
+        accounts = db.query(Account).filter(Account.pin_code == x_kaira_pin).all()
+        if accounts:
+            return accounts
+    return db.query(Account).all()
 
-
-# 2. OBTENER UNA CUENTA POR SU ID
-@router.get("/{account_id}", response_model=schemas.Account)
-def get_account(account_id: int, db: Session = Depends(get_db)):
-    account = db.query(models.Account).filter(models.Account.id == account_id).first()
+# NUEVO: Endpoint para actualizar la cuenta activa mediante el PIN de la cabecera
+@router.patch("/me", response_model=AccountResponse)
+def update_my_account(
+    account_data: AccountUpdate,
+    x_kaira_pin: Optional[str] = Header(None),
+    db: Session = Depends(get_db)
+):
+    if not x_kaira_pin:
+        raise HTTPException(status_code=401, detail="PIN no proporcionado")
+    
+    account = db.query(Account).filter(Account.pin_code == x_kaira_pin).first()
     if not account:
-        raise HTTPException(status_code=404, detail="Cuenta no encontrada")
+        raise HTTPException(status_code=404, detail="Cuenta no encontrada para este PIN")
+
+    update_dict = account_data.model_dump(exclude_unset=True)
+    for key, value in update_dict.items():
+        setattr(account, key, value)
+
+    db.commit()
+    db.refresh(account)
     return account
 
-
-# 3. CREAR UNA NUEVA CUENTA (Personal, Conjunta, etc.)
-@router.post("/", response_model=schemas.Account, status_code=status.HTTP_201_CREATED)
-def create_account(account_data: schemas.AccountCreate, db: Session = Depends(get_db)):
-    new_account = models.Account(
-        name=account_data.name,
-        is_joint=account_data.is_joint,
-        pin_code=account_data.pin_code
-    )
-    db.add(new_account)
-    db.commit()
-    db.refresh(new_account)
-    return new_account
-
-
-# 4. VERIFICAR PIN (El endpoint que usará tu Login/Frontend)
-@router.post("/verify-pin", response_model=schemas.Account)
-def verify_pin(pin: str, db: Session = Depends(get_db)):
-    account = db.query(models.Account).filter(models.Account.pin_code == pin).first()
+@router.get("/me", response_model=AccountResponse)
+def get_my_account(
+    x_kaira_pin: Optional[str] = Header(None),
+    db: Session = Depends(get_db)
+):
+    if not x_kaira_pin:
+        raise HTTPException(status_code=401, detail="PIN no proporcionado")
+    
+    account = db.query(Account).filter(Account.pin_code == x_kaira_pin).first()
     if not account:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, 
-            detail="PIN inválido"
-        )
+        raise HTTPException(status_code=404, detail="Cuenta no encontrada para este PIN")
+    
+    return account
+
+@router.patch("/{account_id}", response_model=AccountResponse)
+def update_account(
+    account_id: int, 
+    account_data: AccountUpdate, 
+    db: Session = Depends(get_db)
+):
+    account = db.query(Account).filter(Account.id == account_id).first()
+    if not account:
+        raise HTTPException(status_code=404, detail="Cuenta no encontrada")
+
+    update_dict = account_data.model_dump(exclude_unset=True)
+    for key, value in update_dict.items():
+        setattr(account, key, value)
+
+    db.commit()
+    db.refresh(account)
     return account

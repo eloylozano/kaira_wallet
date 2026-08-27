@@ -33,14 +33,22 @@ export function getActivePin(): string {
             if (rawAccount) {
                 const account = JSON.parse(rawAccount);
                 if (account?.pin_code) {
-                    return account.pin_code;
+                    return String(account.pin_code);
                 }
             }
         } catch (e) {
-            console.error('Error leyendo PIN de localStorage', e);
+            console.error('Error leyendo PIN de cuenta activa', e);
         }
     }
-    return PUBLIC_KAIRA_PIN || '8825';
+    return PUBLIC_KAIRA_PIN;
+}
+
+export function setActivePin(pin: string, accountData: Record<string, any> = {}): void {
+    if (typeof window !== 'undefined') {
+        const payload = { ...accountData, pin_code: pin };
+        localStorage.setItem('kaira_user_pin', pin);
+        localStorage.setItem('kaira_active_account', JSON.stringify(payload));
+    }
 }
 
 export function getApiHeaders(extraHeaders: Record<string, string> = {}): Record<string, string> {
@@ -51,4 +59,4 @@ export function getApiHeaders(extraHeaders: Record<string, string> = {}): Record
     };
 }
 
-export const KAIRA_PIN = getActivePin();
+export const getKairaPin = () => getActivePin();

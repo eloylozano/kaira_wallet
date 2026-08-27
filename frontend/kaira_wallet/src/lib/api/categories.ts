@@ -1,53 +1,51 @@
-import { apiUrl, getActivePin, getApiHeaders } from '$lib/config/api';
+import { apiUrl, getApiHeaders } from '$lib/config/api';
 
 function headers() {
-	return {
-		'Content-Type': 'application/json',
-		'X-Kaira-PIN': KAIRA_PIN
-	};
+    return {
+        'Content-Type': 'application/json',
+        ...getApiHeaders()
+    };
 }
 
 // 🟢 CREATE
 export async function createCategory(data: any) {
-	const res = await fetch(apiUrl('/categories/'), {
-		method: 'POST',
-		headers: headers(),
-		body: JSON.stringify(data)
-	});
+    const res = await fetch(apiUrl('/categories/'), {
+        method: 'POST',
+        headers: headers(),
+        body: JSON.stringify(data)
+    });
 
-	if (!res.ok) {
-		throw new Error((await res.json()).detail);
-	}
+    if (!res.ok) {
+        throw new Error((await res.json()).detail);
+    }
 
-	return res.json();
+    return res.json();
 }
 
 // 🟡 UPDATE (PUT explícito)
 export async function updateCategory(id: number, data: any) {
-	const res = await fetch(apiUrl(`/categories/${id}`), {
-		method: 'PUT',
-		headers: headers(),
-		body: JSON.stringify(data)
-	});
+    const res = await fetch(apiUrl(`/categories/${id}`), {
+        method: 'PUT',
+        headers: headers(),
+        body: JSON.stringify(data)
+    });
 
-	if (!res.ok) {
-		throw new Error((await res.json()).detail);
-	}
+    if (!res.ok) {
+        throw new Error((await res.json()).detail);
+    }
 
-	return res.json();
+    return res.json();
 }
 
 // 🔴 DELETE
 export async function deleteCategory(id: number) {
-	const res = await fetch(apiUrl(`/categories/${id}`), {
-		method: 'DELETE',
-		headers: {
-			'X-Kaira-PIN': KAIRA_PIN
-		}
-	});
+    const res = await fetch(apiUrl(`/categories/${id}`), {
+        method: 'DELETE',
+        headers: getApiHeaders()
+    });
 
-	if (!res.ok) {
-		const err = await res.json();
-		throw new Error(err.detail);
-	}
+    if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail);
+    }
 }

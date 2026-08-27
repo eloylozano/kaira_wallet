@@ -75,18 +75,19 @@ export function getSettingsSections(
                 {
                     type: 'budget',
                     label: 'Presupuesto mensual'
-                },
-                {
-                    type: 'action',
-                    label: 'Inversiones',
-                    btnText: 'Gestionar',
-                    action: () => goto('/settings/investment-rules')
                 }
             ]
         },
         {
             name: 'Datos',
             items: [
+
+                {
+                    type: 'action',
+                    label: 'Inversiones',
+                    btnText: 'Gestionar',
+                    action: () => goto('/settings/investment-rules')
+                },
                 {
                     type: 'action',
                     label: 'Configurar categorías',

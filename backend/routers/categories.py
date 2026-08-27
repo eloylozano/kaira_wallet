@@ -3,7 +3,8 @@ from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import exists, or_
 from typing import List, Optional
 
-import models, schemas
+import models
+import schemas
 from database import get_db
 
 router = APIRouter(
