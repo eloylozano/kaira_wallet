@@ -1,5 +1,5 @@
 import { browser } from '$app/environment';
-import { apiUrl, getApiHeaders } from '$lib/config/api';
+import { apiUrl, getApiHeaders, getActivePin } from '$lib/config/api';
 
 export interface Category {
 	id: number;
@@ -12,6 +12,10 @@ export interface Category {
 
 let _categories = $state<Category[]>([]);
 
+function getStorageKey() {
+	return `kaira_categories_${getActivePin()}`;
+}
+
 export const categoriesStore = {
 	get all() {
 		return _categories;
@@ -20,7 +24,7 @@ export const categoriesStore = {
 	set(data: Category[]) {
 		_categories = Array.isArray(data) ? data : [];
 		if (browser) {
-			localStorage.setItem('kaira_categories', JSON.stringify(_categories));
+			localStorage.setItem(getStorageKey(), JSON.stringify(_categories));
 		}
 	},
 
@@ -54,9 +58,14 @@ export const categoriesStore = {
 
 	init() {
 		if (browser) {
-			const saved = localStorage.getItem('kaira_categories');
+			_categories = [];
+			const saved = localStorage.getItem(getStorageKey());
 			if (saved) {
-				_categories = JSON.parse(saved);
+				try {
+					_categories = JSON.parse(saved);
+				} catch (e) {
+					_categories = [];
+				}
 			}
 			this.refresh();
 		}
