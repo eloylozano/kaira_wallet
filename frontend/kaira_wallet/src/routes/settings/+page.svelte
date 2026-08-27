@@ -62,14 +62,14 @@
         <h1 class="text-4xl font-black tracking-tighter text-white uppercase italic">Ajustes</h1>
     </header>
 
-    <SegmentedControl
+    <!-- <SegmentedControl
         options={[
             { value: 'dark', label: 'Modo Noche' },
             { value: 'light', label: 'Modo Claro' }
         ]}
         bind:selected={$theme}
         {useHaptics}
-    />
+    /> -->
 
     <div class="space-y-8 pb-10">
         {#each sections as section}
@@ -151,9 +151,9 @@
 
 <ConfirmModal
     isOpen={isConfirmLockOpen}
-    title="¿Bloquear sesión?"
+    title="¿Cerrar sesión?"
     message="Tendrás que introducir el PIN para volver a acceder."
-    confirmText="Bloquear"
+    confirmText="Cerrar sesión"
     onConfirm={handleLockConfirm}
     onCancel={() => (isConfirmLockOpen = false)}
 />

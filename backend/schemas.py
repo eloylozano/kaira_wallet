@@ -4,6 +4,22 @@ from typing import Optional, List, Annotated
 from decimal import Decimal
 import enum
 
+# ===== CUENTAS / WALLETS =====
+
+class AccountBase(BaseModel):
+    name: str
+    is_joint: bool = False
+
+class AccountCreate(AccountBase):
+    pin_code: Optional[str] = None
+
+class Account(AccountBase):
+    id: int
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
 # --- ENUMS ---
 Currency = Annotated[Decimal, Field(max_digits=12, decimal_places=2, gt=0)]
 class TransactionType(str, enum.Enum):
@@ -65,11 +81,11 @@ class TransactionBase(BaseModel):
     currency: CurrencyCode = CurrencyCode.EUR
     description: Optional[str] = None
     category_id: int
+    account_id: Optional[int] = None 
     notes: Optional[str] = None
     date: Optional[datetime] = None
     frequency: FrequencyType = FrequencyType.variable
-    is_paid: bool = True  # <-- Añadido con valor por defecto
-
+    is_paid: bool = True
 
 class TransactionUpdate(BaseModel):
     type: Optional[str] = None
@@ -78,6 +94,7 @@ class TransactionUpdate(BaseModel):
     description: Optional[str] = None
     notes: Optional[str] = None
     category_id: Optional[int] = None
+    account_id: Optional[int] = None  # <-- AÑADIDO
     is_paid: Optional[bool] = None
     frequency: Optional[str] = None
     user_id: Optional[int] = None
@@ -88,6 +105,7 @@ class TransactionCreate(TransactionBase):
 class Transaction(TransactionBase):
     id: int
     date: datetime
+    account_id: int
     user_id: int
     created_at: datetime
     updated_at: datetime
@@ -95,7 +113,7 @@ class Transaction(TransactionBase):
     class Config:
         from_attributes = True
 class TransactionWithCategory(Transaction):
-    category: Category
+    category: Optional[Category] = None
     
     class Config:
         from_attributes = True

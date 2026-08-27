@@ -1,4 +1,4 @@
-import { apiUrl, KAIRA_PIN } from '$lib/config/api';
+import { apiUrl, getActivePin, getApiHeaders } from '$lib/config/api';
 
 function headers() {
 	return {

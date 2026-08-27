@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import asc, desc, or_
 from typing import List, Optional
 from datetime import datetime
@@ -9,23 +9,23 @@ from database import get_db
 router = APIRouter(prefix="/transactions", tags=["Transactions"])
 USER_ID_MOCK = 1
 
-@router.post("/", response_model=schemas.Transaction)
-def create_transaction(transaction: schemas.TransactionCreate, db: Session = Depends(get_db)):
+
+@router.post("/", response_model=schemas.TransactionWithCategory)
+def create_transaction(
+    transaction: schemas.TransactionCreate, 
+    request: Request, 
+    db: Session = Depends(get_db)
+):
     try:
-        user = db.query(models.User).filter(models.User.id == USER_ID_MOCK).first()
-        if not user:
-            raise HTTPException(status_code=404, detail=f"Usuario {USER_ID_MOCK} no existe")
+        account = request.state.account
 
         category = db.query(models.Category).filter(models.Category.id == transaction.category_id).first()
         if not category:
             raise HTTPException(status_code=404, detail=f"Categoría {transaction.category_id} no existe")
 
         data = transaction.model_dump()
-
-        # Limpiar campos que no pertenecen al modelo de BD
         data.pop("currency", None)
 
-        # Procesar fecha
         if data.get("date") is None:
             data["date"] = datetime.now()
         elif isinstance(data["date"], str):
@@ -36,29 +36,33 @@ def create_transaction(transaction: schemas.TransactionCreate, db: Session = Dep
             amount=data["amount"],
             date=data["date"],
             category_id=data["category_id"],
+            account_id=account.id,
+            user_id=USER_ID_MOCK,
             is_paid=data.get("is_paid", True),
             frequency=data.get("frequency", "variable"),
             description=data.get("description") or "Nueva transacción",
-            notes=data.get("notes") or data.get("description"),
-            user_id=USER_ID_MOCK
+            notes=data.get("notes") or data.get("description")
         )
 
         db.add(db_transaction)
         db.commit()
-        db.refresh(db_transaction)
-        return db_transaction
+
+        # Recargamos incluyendo la relación category para el schema TransactionWithCategory
+        return db.query(models.Transaction).options(
+            joinedload(models.Transaction.category)
+        ).filter(models.Transaction.id == db_transaction.id).first()
 
     except HTTPException:
         db.rollback()
         raise
     except Exception as e:
         db.rollback()
-        print(f"❌ ERROR al crear transacción: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.get("/", response_model=List[schemas.TransactionWithCategory])
 def get_transactions(
+    request: Request,
     frequency: Optional[schemas.FrequencyType] = None,
     transaction_type: Optional[schemas.TransactionType] = None,
     is_paid: Optional[bool] = None,
@@ -69,11 +73,14 @@ def get_transactions(
     db: Session = Depends(get_db)
 ):
     try:
-        query = db.query(models.Transaction).filter(
-            models.Transaction.user_id == USER_ID_MOCK
+        account = request.state.account
+
+        query = db.query(models.Transaction).options(
+            joinedload(models.Transaction.category)
+        ).filter(
+            models.Transaction.account_id == account.id
         )
 
-        # filtros normales
         if frequency:
             query = query.filter(models.Transaction.frequency == frequency)
 
@@ -83,9 +90,8 @@ def get_transactions(
         if is_paid is not None:
             query = query.filter(models.Transaction.is_paid == is_paid)
 
-        # 🔥 SEARCH GLOBAL REAL
         if search:
-            query = query.join(models.Category).filter(
+            query = query.outerjoin(models.Category).filter(
                 or_(
                     models.Transaction.description.ilike(f"%{search}%"),
                     models.Transaction.notes.ilike(f"%{search}%"),
@@ -93,64 +99,55 @@ def get_transactions(
                 )
             )
 
-        # orden
         order = desc(models.Transaction.date) if sort == "desc" else asc(models.Transaction.date)
-
-        results = (
-            query
-            .order_by(order)
-            .offset(skip)
-            .limit(limit)
-            .all()
-        )
-
-        return results
+        return query.order_by(order).offset(skip).limit(limit).all()
 
     except Exception as e:
-        print(f"❌ ERROR al obtener transacciones: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-    
+        print(f"❌ ERROR get_transactions: {e}")
+        raise HTTPException(status_code=500, detail=f"Error al obtener transacciones: {str(e)}")
+
 
 @router.get("/count")
 def count_transactions(
+    request: Request,
     transaction_type: Optional[schemas.TransactionType] = None,
     is_paid: Optional[bool] = None,
     search: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
-    try:
-        query = db.query(models.Transaction).filter(
-            models.Transaction.user_id == USER_ID_MOCK
+    account = request.state.account
+    query = db.query(models.Transaction).filter(models.Transaction.account_id == account.id)
+
+    if transaction_type:
+        query = query.filter(models.Transaction.type == transaction_type)
+
+    if is_paid is not None:
+        query = query.filter(models.Transaction.is_paid == is_paid)
+
+    if search:
+        query = query.outerjoin(models.Category).filter(
+            or_(
+                models.Transaction.description.ilike(f"%{search}%"),
+                models.Transaction.notes.ilike(f"%{search}%"),
+                models.Category.name.ilike(f"%{search}%")
+            )
         )
 
-        if transaction_type:
-            query = query.filter(models.Transaction.type == transaction_type)
+    return {"total": query.count()}
 
-        if is_paid is not None:
-            query = query.filter(models.Transaction.is_paid == is_paid)
-
-        if search:
-            query = query.join(models.Category).filter(
-                or_(
-                    models.Transaction.description.ilike(f"%{search}%"),
-                    models.Transaction.notes.ilike(f"%{search}%"),
-                    models.Category.name.ilike(f"%{search}%")
-                )
-            )
-
-        return {"total": query.count()}
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/{transaction_id}", response_model=schemas.TransactionWithCategory)
 def get_transaction(
     transaction_id: int,
+    request: Request,
     db: Session = Depends(get_db)
 ):
-    tx = db.query(models.Transaction).filter(
+    account = request.state.account
+    tx = db.query(models.Transaction).options(
+        joinedload(models.Transaction.category)
+    ).filter(
         models.Transaction.id == transaction_id,
-        models.Transaction.user_id == USER_ID_MOCK
+        models.Transaction.account_id == account.id
     ).first()
 
     if not tx:
@@ -160,16 +157,21 @@ def get_transaction(
         )
 
     return tx
-@router.put("/{transaction_id}", response_model=schemas.Transaction)
+
+
+@router.put("/{transaction_id}", response_model=schemas.TransactionWithCategory)
 def update_transaction(
     transaction_id: int,
     transaction_update: schemas.TransactionUpdate,
+    request: Request,
     db: Session = Depends(get_db)
 ):
     try:
+        account = request.state.account
+
         db_transaction = db.query(models.Transaction).filter(
             models.Transaction.id == transaction_id,
-            models.Transaction.user_id == USER_ID_MOCK
+            models.Transaction.account_id == account.id
         ).first()
 
         if not db_transaction:
@@ -178,21 +180,14 @@ def update_transaction(
                 detail="Transacción no encontrada"
             )
 
-        # Solo campos enviados
-        update_data = transaction_update.model_dump(
-            exclude_unset=True
-        )
-
-        # quitar campo no persistente
+        update_data = transaction_update.model_dump(exclude_unset=True)
         update_data.pop("currency", None)
 
-        # normalizar fecha
         if isinstance(update_data.get("date"), str):
             update_data["date"] = datetime.fromisoformat(
                 update_data["date"].replace("Z", "+00:00")
             )
 
-        # validar categoría si viene
         if "category_id" in update_data:
             category = db.query(models.Category).filter(
                 models.Category.id == update_data["category_id"]
@@ -204,35 +199,35 @@ def update_transaction(
                     detail="Categoría no existe"
                 )
 
-        # aplicar cambios
         for field, value in update_data.items():
             setattr(db_transaction, field, value)
 
         db.commit()
-        db.refresh(db_transaction)
 
-        return db_transaction
+        return db.query(models.Transaction).options(
+            joinedload(models.Transaction.category)
+        ).filter(models.Transaction.id == transaction_id).first()
 
     except HTTPException:
         db.rollback()
         raise
-
     except Exception as e:
         db.rollback()
         print(f"❌ ERROR update transaction: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
-        raise HTTPException(
-            status_code=500,
-            detail=str(e)
-        )
-        
-        
-# --- ELIMINAR TRANSACCIÓN ---
+
 @router.delete("/{transaction_id}")
-def delete_transaction(transaction_id: int, db: Session = Depends(get_db)):
+def delete_transaction(
+    transaction_id: int, 
+    request: Request, 
+    db: Session = Depends(get_db)
+):
+    account = request.state.account
+
     db_transaction = db.query(models.Transaction).filter(
         models.Transaction.id == transaction_id,
-        models.Transaction.user_id == USER_ID_MOCK
+        models.Transaction.account_id == account.id
     ).first()
 
     if not db_transaction:

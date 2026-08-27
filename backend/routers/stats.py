@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 import schemas
@@ -106,14 +106,13 @@ def get_investment_distribution(
         "Error al obtener distribucion de inversiones",
     )
 
-
 @router.get("/summary", response_model=schemas.TransactionStatsResponse)
-def get_transaction_summary(year: int | None = None, db: Session = Depends(get_db)):
+def get_transaction_summary(request: Request, year: int | None = None, db: Session = Depends(get_db)):
+    account = request.state.account
     return run_stats_action(
-        lambda: stats_service.get_transaction_summary(db, year),
+        lambda: stats_service.get_transaction_summary(db, year, account.id),
         "Error al calcular estadisticas",
     )
-
 
 @router.get("/equity/evolution")
 def get_equity_evolution(db: Session = Depends(get_db)):

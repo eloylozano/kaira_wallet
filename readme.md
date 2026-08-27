@@ -99,7 +99,7 @@ DATABASE_URL=postgresql://user:pass@db:5432/kaira_wallet
 La API esta protegida por PIN mediante la cabecera:
 
 ```text
-X-Kaira-PIN: 8061
+X-Kaira-PIN: ****
 ```
 
 El frontend lee su configuracion desde `frontend/kaira_wallet/.env`.

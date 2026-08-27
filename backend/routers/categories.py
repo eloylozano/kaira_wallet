@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session, joinedload
+from sqlalchemy import exists, or_
 from typing import List, Optional
 
 import models, schemas
@@ -11,19 +12,27 @@ router = APIRouter(
     redirect_slashes=True
 )
 
-USER_ID_MOCK = 1  # ⚠️ luego cámbialo por auth real
+USER_ID_MOCK = 1
 
 
 # =========================================================
-# 📌 GET ALL CATEGORIES (árbol completo)
+# 📌 GET ALL CATEGORIES (árbol completo filtrado por cuenta)
 # =========================================================
 @router.get("/", response_model=List[schemas.CategoryWithSubcategories])
-def get_categories(db: Session = Depends(get_db)):
+def get_categories(request: Request, db: Session = Depends(get_db)):
     try:
+        account = request.state.account
+
+        # Obtener categorías asociadas a la cuenta o predefinidas que sean raíz
         categories = (
             db.query(models.Category)
             .options(joinedload(models.Category.subcategories))
-            .filter(models.Category.user_id == USER_ID_MOCK)
+            .filter(
+                or_(
+                    models.Category.account_id == account.id,
+                    models.Category.is_predefined == True
+                )
+            )
             .filter(models.Category.parent_id == None)
             .all()
         )
@@ -31,7 +40,7 @@ def get_categories(db: Session = Depends(get_db)):
         for cat in categories:
             cat.subcategories = [
                 sub for sub in cat.subcategories
-                if sub.user_id == USER_ID_MOCK
+                if sub.account_id == account.id or sub.is_predefined
             ]
 
         return categories
@@ -39,8 +48,9 @@ def get_categories(db: Session = Depends(get_db)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 # =========================================================
-# 📌 GET PREDEFINED (opcional)
+# 📌 GET PREDEFINED
 # =========================================================
 @router.get("/predefined", response_model=List[schemas.CategoryWithSubcategories])
 def get_predefined_categories(
@@ -59,16 +69,25 @@ def get_predefined_categories(
 
 
 # =========================================================
-# 📌 CREATE CATEGORY (padre o subcategoría)
+# 📌 CREATE CATEGORY
 # =========================================================
 @router.post("/", response_model=schemas.Category)
-def create_category(category: schemas.CategoryCreate, db: Session = Depends(get_db)):
+def create_category(
+    category: schemas.CategoryCreate, 
+    request: Request, 
+    db: Session = Depends(get_db)
+):
     try:
-        # validar parent
+        account = request.state.account
+
+        # Validar parent si viene
         if category.parent_id is not None:
             parent = db.query(models.Category).filter(
                 models.Category.id == category.parent_id,
-                models.Category.user_id == USER_ID_MOCK
+                or_(
+                    models.Category.account_id == account.id,
+                    models.Category.is_predefined == True
+                )
             ).first()
 
             if not parent:
@@ -77,6 +96,7 @@ def create_category(category: schemas.CategoryCreate, db: Session = Depends(get_
         db_category = models.Category(
             **category.model_dump(),
             user_id=USER_ID_MOCK,
+            account_id=account.id,  # Vinculación explícita a la cuenta activa
             is_predefined=False
         )
 
@@ -86,9 +106,13 @@ def create_category(category: schemas.CategoryCreate, db: Session = Depends(get_
 
         return db_category
 
+    except HTTPException:
+        db.rollback()
+        raise
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
+
 
 # =========================================================
 # 📌 UPDATE CATEGORY
@@ -97,29 +121,36 @@ def create_category(category: schemas.CategoryCreate, db: Session = Depends(get_
 def update_category(
     category_id: int,
     category_update: schemas.CategoryCreate,
+    request: Request,
     db: Session = Depends(get_db)
 ):
     try:
+        account = request.state.account
+
         db_category = db.query(models.Category).filter(
             models.Category.id == category_id,
-            models.Category.user_id == USER_ID_MOCK
+            models.Category.account_id == account.id
         ).first()
 
         if not db_category:
-            raise HTTPException(status_code=404, detail="Categoría no encontrada")
+            raise HTTPException(
+                status_code=404, 
+                detail="Categoría no encontrada o no pertenece a esta cuenta"
+            )
 
-        # 🚫 evitar self parent
         if category_update.parent_id == category_id:
             raise HTTPException(
                 status_code=400,
                 detail="Una categoría no puede ser su propio padre"
             )
 
-        # 🚫 validar parent existe (IMPORTANTE también en update)
         if category_update.parent_id is not None:
             parent = db.query(models.Category).filter(
                 models.Category.id == category_update.parent_id,
-                models.Category.user_id == USER_ID_MOCK
+                or_(
+                    models.Category.account_id == account.id,
+                    models.Category.is_predefined == True
+                )
             ).first()
 
             if not parent:
@@ -133,30 +164,36 @@ def update_category(
 
         return db_category
 
+    except HTTPException:
+        db.rollback()
+        raise
     except Exception as e:
         db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
+
 # =========================================================
 # 📌 DELETE CATEGORY
 # =========================================================
-from sqlalchemy import exists
-
 @router.delete("/{category_id}")
-def delete_category(category_id: int, db: Session = Depends(get_db)):
+def delete_category(
+    category_id: int, 
+    request: Request, 
+    db: Session = Depends(get_db)
+):
+    account = request.state.account
 
     db_category = db.query(models.Category).filter(
         models.Category.id == category_id,
-        models.Category.user_id == USER_ID_MOCK
+        models.Category.account_id == account.id
     ).first()
 
     if not db_category:
         raise HTTPException(
             status_code=404,
-            detail="Categoría no encontrada"
+            detail="Categoría no encontrada o no pertenece a esta cuenta"
         )
 
-    # 🚨 comprobar movimientos asociados
     has_transactions = db.query(
         db.query(models.Transaction)
         .filter(models.Transaction.category_id == category_id)

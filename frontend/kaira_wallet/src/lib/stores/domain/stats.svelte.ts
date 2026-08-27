@@ -1,11 +1,11 @@
-import { apiUrl, KAIRA_PIN } from '$lib/config/api';
+import { apiUrl, getActivePin, getApiHeaders } from '$lib/config/api';
 import { transactionsStore } from '$lib/stores/domain/transactions.svelte';
 
 class StatsService {
     selectedYear = $state(new Date().getFullYear());
     selectedMonth = $state(new Date().getMonth());
 
-    // 🔥 Estado principal (NORMALIZADO)
+    // Estado principal (NORMALIZADO)
     monthlyStatsData = $state({
         income: 0,
         expense: 0,
@@ -24,7 +24,7 @@ class StatsService {
 
     monthlyBreakdown = $state<any[]>([]);
 
-    // 🔥 distribución separada (más clara)
+    // Distribución separada
     distributionData = $state({
         expenses: [] as any[],
         pareto: [] as any[],
@@ -45,23 +45,22 @@ class StatsService {
             const [boxesRes, breakdownRes, structureRes] = await Promise.all([
                 fetch(
                     apiUrl(`/stats/monthly-boxes?year=${this.selectedYear}&month=${sqlMonth}`),
-                    { headers: { 'X-Kaira-PIN': KAIRA_PIN } }
+                    { headers: getApiHeaders() }
                 ),
 
                 fetch(
                     apiUrl(`/stats/monthly-breakdown?year=${this.selectedYear}`),
-                    { headers: { 'X-Kaira-PIN': KAIRA_PIN } }
+                    { headers: getApiHeaders() }
                 ),
 
                 fetch(
                     apiUrl(`/stats/expense-structure?year=${this.selectedYear}&month=${sqlMonth}`),
-                    { headers: { 'X-Kaira-PIN': KAIRA_PIN } }
+                    { headers: getApiHeaders() }
                 )
             ]);
 
             if (boxesRes.ok) {
                 const boxes = await boxesRes.json();
-
                 this.monthlyStatsData = {
                     ...this.monthlyStatsData,
                     ...boxes
@@ -74,7 +73,6 @@ class StatsService {
 
             if (structureRes.ok) {
                 const structure = await structureRes.json();
-
                 this.monthlyStatsData = {
                     ...this.monthlyStatsData,
                     ...structure
@@ -92,15 +90,15 @@ class StatsService {
             const [expRes, paretoRes, investRes] = await Promise.all([
                 fetch(
                     apiUrl(`/stats/distribution/expenses?year=${this.selectedYear}&month=${sqlMonth}`),
-                    { headers: { 'X-Kaira-PIN': KAIRA_PIN } }
+                    { headers: getApiHeaders() }
                 ),
                 fetch(
                     apiUrl(`/stats/distribution/pareto?year=${this.selectedYear}`),
-                    { headers: { 'X-Kaira-PIN': KAIRA_PIN } }
+                    { headers: getApiHeaders() }
                 ),
                 fetch(
                     apiUrl(`/stats/distribution/investments?year=${this.selectedYear}&month=${sqlMonth}`),
-                    { headers: { 'X-Kaira-PIN': KAIRA_PIN } }
+                    { headers: getApiHeaders() }
                 )
             ]);
 
@@ -115,8 +113,6 @@ class StatsService {
 
             if (investRes.ok) {
                 const data = await investRes.json();
-
-                // ✅ Sincronizamos con el nuevo objeto del Backend
                 this.distributionData.investments = {
                     cash_ratio: data.cash_ratio || { cash: 0, invested: 0 },
                     allocation: Array.isArray(data.allocation) ? data.allocation : []
@@ -179,15 +175,14 @@ class StatsService {
 
     globalBalance = $state(0);
 
-    // 2. Método para traer ambos datos
     async fetchHomeData(year: number) {
         try {
             const [summaryRes, globalRes] = await Promise.all([
                 fetch(apiUrl(`/stats/summary?year=${year}`), {
-                    headers: { 'X-Kaira-PIN': KAIRA_PIN }
+                    headers: getApiHeaders()
                 }),
                 fetch(apiUrl('/stats/summary'), {
-                    headers: { 'X-Kaira-PIN': KAIRA_PIN }
+                    headers: getApiHeaders()
                 })
             ]);
 
@@ -210,22 +205,20 @@ class StatsService {
     assetTypes = $state<any[]>([]);
     equityLoading = $state(false);
 
-    // 2. Nuevo método para cargar todo lo referente a Patrimonio
     async fetchEquityData() {
         this.equityLoading = true;
         try {
-            const headers = { 'X-Kaira-PIN': KAIRA_PIN };
+            const headers = getApiHeaders();
             const [resEvolution, resAssets, resGlobal] = await Promise.all([
                 fetch(apiUrl('/stats/equity/evolution'), { headers }),
                 fetch(apiUrl('/stats/equity/asset-types'), { headers }),
-                fetch(apiUrl('/stats/'), { headers }) // Para los totales generales
+                fetch(apiUrl('/stats/'), { headers })
             ]);
 
             if (resEvolution.ok) this.equityEvolution = await resEvolution.json();
             if (resAssets.ok) this.assetTypes = await resAssets.json();
             if (resGlobal.ok) {
                 const global = await resGlobal.json();
-                // Aprovechamos para actualizar summaryData si lo necesitas
                 this.summaryData = {
                     total_income: global.total_income,
                     total_expense: global.total_expense,
@@ -239,7 +232,6 @@ class StatsService {
         }
     }
 
-    // Añadir al estado de la clase StatsService
     projectionData = $state({
         current_balance: 0,
         avg_monthly_savings: 0,
@@ -249,10 +241,9 @@ class StatsService {
 
     async fetchFreedomProjection() {
         try {
-            // Asegúrate de que selectedYear no sea undefined
             const year = this.selectedYear || new Date().getFullYear();
             const res = await fetch(apiUrl(`/stats/freedom-projection?year=${year}`), {
-                headers: { 'X-Kaira-PIN': KAIRA_PIN }
+                headers: getApiHeaders()
             });
             if (res.ok) {
                 this.projectionData = await res.json();

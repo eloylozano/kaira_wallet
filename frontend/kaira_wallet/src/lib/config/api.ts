@@ -11,29 +11,44 @@ export function getApiBaseUrl(): string {
     }
 
     if (typeof window !== 'undefined') {
-        // Si estás desarrollando en tu PC local (localhost)
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-            return `http://localhost:8000`;
+            return 'http://localhost:8000/api';
         }
-        
-        // En producción (LXC), devolvemos la ruta relativa vacía.
-        // Así las peticiones irán a '/api/...' bajo el mismo dominio de la barra de navegación.
         return '/api';
     }
 
-    return 'http://localhost:8000';
+    return 'http://localhost:8000/api';
 }
 
 export function apiUrl(path: string): string {
     const normalizedPath = path.startsWith('/') ? path : `/${path}`;
     const baseUrl = getApiBaseUrl();
-
-    // Si es ruta relativa (producción), evitamos que se duplique la barra si 'baseUrl' es '/api' y 'normalizedPath' es '/summary'
-    if (baseUrl === '/api') {
-        return `/api${normalizedPath}`;
-    }
-
     return `${baseUrl}${normalizedPath}`;
 }
 
-export const KAIRA_PIN = PUBLIC_KAIRA_PIN;
+export function getActivePin(): string {
+    if (typeof window !== 'undefined') {
+        try {
+            const rawAccount = localStorage.getItem('kaira_active_account');
+            if (rawAccount) {
+                const account = JSON.parse(rawAccount);
+                if (account?.pin_code) {
+                    return account.pin_code;
+                }
+            }
+        } catch (e) {
+            console.error('Error leyendo PIN de localStorage', e);
+        }
+    }
+    return PUBLIC_KAIRA_PIN || '8825';
+}
+
+export function getApiHeaders(extraHeaders: Record<string, string> = {}): Record<string, string> {
+    return {
+        'Content-Type': 'application/json',
+        'X-Kaira-PIN': getActivePin(),
+        ...extraHeaders
+    };
+}
+
+export const KAIRA_PIN = getActivePin();

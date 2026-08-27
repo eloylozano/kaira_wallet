@@ -55,8 +55,9 @@ export function getSettingsSections(
                 },
                 {
                     type: 'action',
-                    label: 'Bloquear sesión',
-                    btnText: 'Bloquear',
+                    label: 'Cerrar sesión',
+                    btnText: 'Cerrar ',
+                    variant: 'danger',
                     action: () => {
                         setLockModal(true);
                         if (useHaptics) haptic();

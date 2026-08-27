@@ -1,5 +1,5 @@
 import { browser } from '$app/environment';
-import { apiUrl, KAIRA_PIN } from '$lib/config/api';
+import { apiUrl, getActivePin, getApiHeaders } from '$lib/config/api';
 
 export interface Category {
 	id: number;
