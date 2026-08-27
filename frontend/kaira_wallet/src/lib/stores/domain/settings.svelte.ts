@@ -1,8 +1,12 @@
 import { browser } from '$app/environment';
-import { apiUrl } from '$lib/config/api';
+import { apiUrl, getActivePin } from '$lib/config/api';
 
 class SettingsStore {
-    monthlyBudget = $state<number>(350);
+    #initialBudget = browser ? Number(localStorage.getItem('monthly_budget')) || 350 : 350;
+    #initialBackup = browser ? Number(localStorage.getItem('backup_frequency_days')) || 7 : 7;
+
+    monthlyBudget = $state(this.#initialBudget);
+    backupFrequency = $state(this.#initialBackup);
 
     // Cargar desde la API usando el PIN activo
     async fetchSettings(pin: string) {
@@ -24,9 +28,9 @@ class SettingsStore {
         try {
             const res = await fetch(apiUrl('/accounts/me'), {
                 method: 'PATCH',
-                headers: { 
+                headers: {
                     'Content-Type': 'application/json',
-                    'X-Kaira-PIN': pin 
+                    'X-Kaira-PIN': pin
                 },
                 body: JSON.stringify({ monthly_budget: newValue })
             });
@@ -35,6 +39,25 @@ class SettingsStore {
             }
         } catch (err) {
             console.error('Error actualizando presupuesto:', err);
+        }
+    }
+
+    updateBackupFrequency(days: number) {
+        this.backupFrequency = Number(days);
+        if (browser) {
+            localStorage.setItem('backup_frequency_days', String(days));
+            try {
+                fetch(apiUrl('/backup'), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Kaira-PIN': getActivePin()
+                    },
+                    body: JSON.stringify({ frequency_days: Number(days) })
+                });
+            } catch (e) {
+                // ignore
+            }
         }
     }
 }

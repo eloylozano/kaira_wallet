@@ -6,8 +6,9 @@ from fastapi.openapi.utils import get_openapi
 from fastapi.concurrency import run_in_threadpool
 
 import models
-from database import engine, SessionLocal
-from routers import categories, transactions, stats, accounts  
+from database import engine, SessionLocal, get_db
+from routers import categories, transactions, stats, accounts
+from routers import settings as settings_router
 
 api_key_header = APIKeyHeader(name="X-Kaira-PIN", auto_error=False)
 
@@ -54,7 +55,6 @@ def _verify_pin_sync(user_pin: str):
     clean_pin = user_pin.strip()
     db = SessionLocal()
     try:
-        # Probamos tanto el string como convertido a entero por si el campo es de tipo Int
         account = db.query(models.Account).filter(models.Account.pin_code == clean_pin).first()
         if not account:
             try:
@@ -84,7 +84,6 @@ async def verify_pin(request: Request, call_next):
             content={"detail": "PIN de acceso no proporcionado"}
         )
 
-    # Validamos el PIN de forma no bloqueante utilizando un hilo independiente
     account = await run_in_threadpool(_verify_pin_sync, user_pin)
     if not account:
         return JSONResponse(
@@ -109,6 +108,7 @@ app.include_router(categories.router, prefix="/api")
 app.include_router(transactions.router, prefix="/api")
 app.include_router(stats.router, prefix="/api")
 app.include_router(accounts.router, prefix="/api")
+app.include_router(settings_router.router, prefix="/api")
 
 # --- STARTUP EVENT ---
 @app.on_event("startup")

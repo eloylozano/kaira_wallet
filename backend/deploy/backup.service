@@ -1,0 +1,14 @@
+[Unit]
+Description=Kaira Wallet Backup Service
+After=network.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/root/kaira_wallet
+ExecStart=/usr/bin/docker compose exec -T backend python3 scripts/run_backup_if_needed.py
+User=root
+Group=root
+Nice=10
+
+[Install]
+WantedBy=multi-user.target
