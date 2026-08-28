@@ -38,8 +38,13 @@
 		if (filter !== 'all') {
 			result = result.filter((c) => c.transaction_type === filter);
 		}
-		return [...result].sort((a, b) => a.name.localeCompare(b.name));
+		return result;
 	});
+
+	async function handleReorder(parentId: number | null, reorderedIds: number[]) {
+		const payloadItems = reorderedIds.map((id, index) => ({ id, order: index }));
+		await categoriesStore.reorder(payloadItems);
+	}
 </script>
 
 <div class="mx-auto max-w-xl space-y-6">
@@ -64,7 +69,7 @@
 		]}
 	/>
 
-	<CategoryList items={filteredCategories} onEdit={openEdit} />
+	<CategoryList items={filteredCategories} onEdit={openEdit} onReorder={handleReorder} />
 </div>
 
 {#if isOpen}

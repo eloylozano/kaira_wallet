@@ -17,14 +17,13 @@ USER_ID_MOCK = 1
 
 
 # =========================================================
-# 📌 GET ALL CATEGORIES (árbol completo filtrado por cuenta)
+# 📌 GET ALL CATEGORIES (ordenadas por order ASC)
 # =========================================================
 @router.get("/", response_model=List[schemas.CategoryWithSubcategories])
 def get_categories(request: Request, db: Session = Depends(get_db)):
     try:
         account = request.state.account
 
-        # Obtener categorías asociadas a la cuenta o predefinidas que sean raíz
         categories = (
             db.query(models.Category)
             .options(joinedload(models.Category.subcategories))
@@ -35,18 +34,47 @@ def get_categories(request: Request, db: Session = Depends(get_db)):
                 )
             )
             .filter(models.Category.parent_id == None)
+            .order_by(models.Category.order.asc(), models.Category.id.asc())
             .all()
         )
 
         for cat in categories:
-            cat.subcategories = [
+            valid_subs = [
                 sub for sub in cat.subcategories
                 if sub.account_id == account.id or sub.is_predefined
             ]
+            valid_subs.sort(key=lambda x: (x.order if x.order is not None else 0, x.id))
+            cat.subcategories = valid_subs
 
         return categories
 
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# =========================================================
+# 📌 REORDER CATEGORIES
+# =========================================================
+@router.patch("/reorder")
+def reorder_categories(
+    payload: schemas.CategoryBatchReorder,
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    try:
+        account = request.state.account
+
+        for item in payload.items:
+            db.query(models.Category).filter(
+                models.Category.id == item.id,
+                models.Category.account_id == account.id
+            ).update({"order": item.order})
+
+        db.commit()
+        return {"status": "success"}
+
+    except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -61,7 +89,7 @@ def get_predefined_categories(
     query = db.query(models.Category).filter(
         models.Category.is_predefined == True,
         models.Category.parent_id == None
-    )
+    ).order_by(models.Category.order.asc())
 
     if transaction_type:
         query = query.filter(models.Category.transaction_type == transaction_type)
@@ -81,7 +109,6 @@ def create_category(
     try:
         account = request.state.account
 
-        # Validar parent si viene
         if category.parent_id is not None:
             parent = db.query(models.Category).filter(
                 models.Category.id == category.parent_id,
@@ -97,7 +124,7 @@ def create_category(
         db_category = models.Category(
             **category.model_dump(),
             user_id=USER_ID_MOCK,
-            account_id=account.id,  # Vinculación explícita a la cuenta activa
+            account_id=account.id,
             is_predefined=False
         )
 

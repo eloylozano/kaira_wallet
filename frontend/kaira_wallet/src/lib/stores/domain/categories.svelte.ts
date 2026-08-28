@@ -8,6 +8,7 @@ export interface Category {
 	transaction_type: 'expense' | 'income' | 'invest';
 	subcategories: Category[];
 	parent_id: number | null;
+	order?: number;
 }
 
 let _categories = $state<Category[]>([]);
@@ -53,6 +54,31 @@ export const categoriesStore = {
 			console.log('✅ Categories loaded:', data.length);
 		} catch (err) {
 			console.error('❌ Network error:', err);
+		}
+	},
+
+	async reorder(items: { id: number; order: number }[]) {
+		const url = apiUrl('/categories/reorder');
+		try {
+			const res = await fetch(url, {
+				method: 'PATCH',
+				headers: {
+					'Content-Type': 'application/json',
+					'Accept': 'application/json',
+					...getApiHeaders()
+				},
+				body: JSON.stringify({ items })
+			});
+
+			if (!res.ok) {
+				console.error('❌ Error reordering categories');
+				return;
+			}
+
+			// Refrescamos para sincronizar el orden exacto del backend
+			await this.refresh();
+		} catch (err) {
+			console.error('❌ Network error during reorder:', err);
 		}
 	},
 

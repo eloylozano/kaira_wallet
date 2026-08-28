@@ -9,7 +9,14 @@ from .enums import (
 )
 
 from .accounts import AccountBase, AccountCreate, Account
-from .categories import CategoryBase, CategoryCreate, Category, CategoryWithSubcategories
+from .categories import (
+    CategoryBase,
+    CategoryCreate,
+    Category,
+    CategoryWithSubcategories,
+    CategoryReorderItem,
+    CategoryBatchReorder,
+)
 from .transactions import (
     TransactionBase,
     TransactionUpdate,
@@ -35,6 +42,8 @@ __all__ = [
     "CategoryCreate",
     "Category",
     "CategoryWithSubcategories",
+    "CategoryReorderItem",
+    "CategoryBatchReorder",
     "TransactionBase",
     "TransactionUpdate",
     "TransactionCreate",

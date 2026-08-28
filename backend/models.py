@@ -104,7 +104,7 @@ class Category(Base):
     account_id = Column(Integer, ForeignKey("accounts.id"), nullable=True)
     is_predefined = Column(Boolean, default=False)
     icon = Column(String, nullable=True)
-
+    order = Column(Integer, default=0, nullable=False)
     user = relationship("User", back_populates="categories", foreign_keys=[user_id])
     account = relationship("Account", back_populates="categories")
     transactions = relationship("Transaction", back_populates="category")

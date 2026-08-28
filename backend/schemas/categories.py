@@ -15,12 +15,21 @@ class CategoryCreate(BaseModel):
     transaction_type: str
     parent_id: Optional[int] = None
     icon: Optional[str] = None
+    order: Optional[int] = 0
+
+class CategoryReorderItem(BaseModel):
+    id: int
+    order: int
+
+class CategoryBatchReorder(BaseModel):
+    items: List[CategoryReorderItem]
 
 class Category(CategoryBase):
     id: int
     is_predefined: bool
     user_id: Optional[int]
     created_at: datetime
+    order: Optional[int] = 0
 
     class Config:
         from_attributes = True
