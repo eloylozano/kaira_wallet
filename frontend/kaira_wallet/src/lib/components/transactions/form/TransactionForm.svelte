@@ -75,7 +75,7 @@
 
 	// ---------------- SUBMIT ----------------
 	async function submit() {
-		if (!amount || !selectedCategoryId) return;
+		if (saving || !amount || !selectedCategoryId) return;
 
 		saving = true;
 
