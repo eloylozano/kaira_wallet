@@ -4,6 +4,9 @@ import os
 import json
 from database import get_db
 import models
+import threading
+import time
+import subprocess
 from datetime import datetime
 from fastapi.responses import FileResponse
 
@@ -124,3 +127,27 @@ def run_backup_now(db: Session = Depends(get_db)):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+def run_background_backup_checker():
+    """Comprueba cada 6 horas si es necesario realizar una copia de seguridad."""
+    while True:
+        try:
+            # Subimos un nivel desde routers/ para llegar a la raíz del backend
+            base_dir = os.path.dirname(os.path.dirname(__file__))
+            script = os.path.join(base_dir, 'scripts', 'run_backup_if_needed.py')
+            if os.path.exists(script):
+                subprocess.run(
+                    ["/usr/bin/env", "python3", script],
+                    cwd=base_dir,
+                    capture_output=True,
+                    text=True,
+                    timeout=120,
+                )
+        except Exception:
+            pass
+        # Esperar 6 horas antes de la siguiente comprobación
+        time.sleep(6 * 3600)
+
+def start_backup_scheduler():
+    t = threading.Thread(target=run_background_backup_checker, daemon=True)
+    t.start()

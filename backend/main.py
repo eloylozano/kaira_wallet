@@ -9,6 +9,7 @@ import models
 from database import engine, SessionLocal, get_db
 from routers import categories, transactions, stats, accounts
 from routers import settings as settings_router
+from routers.settings import start_backup_scheduler
 
 api_key_header = APIKeyHeader(name="X-Kaira-PIN", auto_error=False)
 
@@ -123,6 +124,7 @@ def startup_event():
         init_default_user(db)
         init_default_accounts(db)
         init_predefined_categories(db)
+        start_backup_scheduler()  # <--- Arranca el planificador aquí
         print("✅ Base de datos inicializada correctamente")
     except Exception as e:
         print(f"⚠️ Error en startup: {e}")

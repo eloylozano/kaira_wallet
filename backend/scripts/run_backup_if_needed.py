@@ -8,9 +8,11 @@ import json
 import subprocess
 import shutil
 import sys
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from urllib.parse import urlparse
 from sqlalchemy import func
+from dotenv import load_dotenv
+load_dotenv(os.path.join(os.path.dirname(os.path.dirname(__file__)), '.env'))
 
 ROOT = os.path.dirname(os.path.dirname(__file__))
 CONFIG_PATH = os.path.join(ROOT, 'backup_config.json')
@@ -48,11 +50,24 @@ def perform_backup(outfile):
     to the history when the database dump itself succeeds.
     """
     database_url = os.getenv('DATABASE_URL')
-    if database_url and 'postgres' in database_url:
+    # If DATABASE_URL not set in environment (e.g., running locally), try importing
+    # the constructed URL from backend.database to keep behavior consistent.
+    if not database_url:
         try:
-            print('Creating PostgreSQL dump...')
+            from database import DATABASE_URL as DATABASE_URL_CONF
+            database_url = DATABASE_URL_CONF
+        except Exception:
+            database_url = None
+    if database_url and 'postgres' in database_url:
+        # Prefer an explicit PG_DUMP_PATH, fall back to PATH lookup (pg_dump or pg_dump.exe)
+        pg_dump_path = os.getenv('PG_DUMP_PATH') or shutil.which('pg_dump') or shutil.which('pg_dump.exe')
+        if not pg_dump_path:
+            print('pg_dump not found: set PG_DUMP_PATH or install pg_dump in PATH')
+            return False
+        try:
+            print('Creating PostgreSQL dump using', pg_dump_path)
             subprocess.check_call([
-                'pg_dump', '--dbname', database_url,
+                pg_dump_path, '--dbname', database_url,
                 '--format=plain', '--no-owner', '--no-privileges',
                 '--file', outfile,
             ])
@@ -86,7 +101,7 @@ def append_log(entry: dict):
     data.append(entry)
     try:
         with open(log_path, 'w') as f:
-            json.dump(data, f, default=str)
+            json.dump(data, f, default=str, indent=2, ensure_ascii=False)
     except Exception:
         pass
 
@@ -125,11 +140,12 @@ def main(force=False):
     freq_days = int(cfg.get('frequency_days', 7))
 
     lb = last_backup_time()
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
 
     if force or lb is None or (now - lb) >= timedelta(days=freq_days):
         ensure_backups_dir()
         ts = now.strftime('%Y%m%d_%H%M%S')
+        # Use .sql for SQL dumps; if backing up sqlite file we still keep .sql to maintain history
         outfile = os.path.join(BACKUPS_DIR, f'backup_{ts}.sql')
         print('Creating backup to', outfile)
         ok = perform_backup(outfile)
@@ -138,6 +154,7 @@ def main(force=False):
             entry = {
                 'timestamp': now.isoformat(),
                 'file': os.path.basename(outfile),
+                'absolute_path': os.path.abspath(outfile),
                 'balance': current_balance(),
             }
             append_log(entry)

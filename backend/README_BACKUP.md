@@ -13,6 +13,32 @@ Notes:
 - For SQLite it will copy the DB file.
 - Ensure the cron environment has the necessary `DATABASE_URL` env var and `pg_dump` in PATH if using Postgres.
 
+Requirements
+------------
+
+- `pg_dump` for PostgreSQL backups. Either install PostgreSQL client tools so `pg_dump` is in `PATH`, or set the environment variable `PG_DUMP_PATH` to the full path of the `pg_dump` executable.
+
+Windows
+
+- Install PostgreSQL from https://www.postgresql.org/download/windows/ and ensure the `bin` folder (e.g. `C:\Program Files\PostgreSQL\15\bin`) is in your `PATH`, or set `PG_DUMP_PATH` to `C:\Program Files\PostgreSQL\15\bin\pg_dump.exe`.
+
+Linux (Debian/Ubuntu)
+
+- Install client tools: `sudo apt install postgresql-client`
+
+Testing
+
+- Run the backup script locally (it will report if `pg_dump` is missing):
+
+```bash
+python backend/scripts/run_backup_if_needed.py --force
+```
+
+Notes
+-----
+
+- The script falls back to the `DATABASE_URL` constructed in `backend/database.py` if `DATABASE_URL` is not present in the environment.
+
 Testing and service info
 -----------------------
 
