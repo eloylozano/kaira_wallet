@@ -112,12 +112,14 @@
 						out:fade={{ duration: 120 }}
 						class="absolute -top-1 right-3 left-3 z-30"
 					>
+						<!-- svelte-ignore element_invalid_self_closing_tag -->
 						<div
 							class="h-[3px] rounded-full bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.45)]"
 						/>
 					</div>
 				{/if}
 
+				<!-- svelte-ignore a11y_no_static_element_interactions -->
 				<div
 					draggable="true"
 					ondragstart={(e) => handleDragStart(e, cat.id)}
@@ -156,12 +158,14 @@
 									out:fade={{ duration: 120 }}
 									class="absolute -top-1 right-3 left-3 z-30"
 								>
+									<!-- svelte-ignore element_invalid_self_closing_tag -->
 									<div
 										class="h-[3px] rounded-full bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.45)]"
 									/>
 								</div>
 							{/if}
 
+							<!-- svelte-ignore a11y_no_static_element_interactions -->
 							<div
 								draggable="true"
 								ondragstart={(e) => handleDragStart(e, sub.id)}

@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import asc, desc, or_
 from typing import List, Optional
 from datetime import datetime
+from decimal import Decimal
 
 import models
 import schemas
@@ -10,6 +11,17 @@ from database import get_db
 
 router = APIRouter(prefix="/transactions", tags=["Transactions"])
 USER_ID_MOCK = 1
+
+
+def _history_value(value):
+    """Convert model values into JSON values suitable for the audit log."""
+    if isinstance(value, Decimal):
+        return float(value)
+    if isinstance(value, datetime):
+        return value.isoformat()
+    if hasattr(value, "value"):
+        return value.value
+    return value
 
 
 @router.post("/", response_model=schemas.TransactionWithCategory)
@@ -161,6 +173,53 @@ def get_transaction(
     return tx
 
 
+@router.get("/{transaction_id}/history")
+def get_transaction_history(
+    transaction_id: int,
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    account = request.state.account
+    transaction = db.query(models.Transaction).filter(
+        models.Transaction.id == transaction_id,
+        models.Transaction.account_id == account.id
+    ).first()
+    if not transaction:
+        raise HTTPException(status_code=404, detail="Transacción no encontrada")
+
+    entries = db.query(models.TransactionHistory).filter(
+        models.TransactionHistory.transaction_id == transaction_id,
+        models.TransactionHistory.account_id == account.id
+    ).order_by(desc(models.TransactionHistory.created_at)).all()
+
+    category_ids = {
+        value
+        for entry in entries
+        for field, change in entry.changes.items()
+        if field == "category_id"
+        if isinstance(change, dict)
+        for value in (change.get("from"), change.get("to"))
+        if isinstance(value, int)
+    }
+    category_names = {
+        category.id: category.name
+        for category in db.query(models.Category).filter(models.Category.id.in_(category_ids)).all()
+    } if category_ids else {}
+
+    def display_changes(changes):
+        result = {field: dict(change) for field, change in changes.items()}
+        category_change = result.get("category_id")
+        if category_change:
+            category_change.setdefault("from_label", category_names.get(category_change.get("from")))
+            category_change.setdefault("to_label", category_names.get(category_change.get("to")))
+        return result
+
+    return [
+        {"id": entry.id, "changes": display_changes(entry.changes), "created_at": entry.created_at}
+        for entry in entries
+    ]
+
+
 @router.put("/{transaction_id}", response_model=schemas.TransactionWithCategory)
 def update_transaction(
     transaction_id: int,
@@ -201,8 +260,30 @@ def update_transaction(
                     detail="Categoría no existe"
                 )
 
+        old_category_name = db_transaction.category.name if db_transaction.category else None
+        new_category_name = category.name if "category_id" in update_data else old_category_name
+
+        changes = {}
+        for field, value in update_data.items():
+            previous_value = getattr(db_transaction, field)
+            if _history_value(previous_value) != _history_value(value):
+                changes[field] = {
+                    "from": _history_value(previous_value),
+                    "to": _history_value(value),
+                }
+                if field == "category_id":
+                    changes[field]["from_label"] = old_category_name
+                    changes[field]["to_label"] = new_category_name
+
         for field, value in update_data.items():
             setattr(db_transaction, field, value)
+
+        if changes:
+            db.add(models.TransactionHistory(
+                transaction_id=db_transaction.id,
+                account_id=account.id,
+                changes=changes,
+            ))
 
         db.commit()
 

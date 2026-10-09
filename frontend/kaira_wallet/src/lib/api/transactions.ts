@@ -110,3 +110,15 @@ export async function createTransaction(payload: TransactionPayload) {
 
     return res.json();
 }
+
+export type TransactionHistoryEntry = {
+    id: number;
+    changes: Record<string, { from: unknown; to: unknown; from_label?: string | null; to_label?: string | null }>;
+    created_at: string;
+};
+
+export async function getTransactionHistory(id: number): Promise<TransactionHistoryEntry[]> {
+    const res = await fetch(apiUrl(`/transactions/${id}/history`), { headers: authHeaders() });
+    if (!res.ok) throw new Error('Error cargando el historial');
+    return res.json();
+}

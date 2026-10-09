@@ -16,11 +16,18 @@ CONFIG_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'backup_c
 
 
 def _write_config_file(data: dict):
+    temp_path = f'{CONFIG_PATH}.tmp'
     try:
-        with open(CONFIG_PATH, 'w') as f:
+        with open(temp_path, 'w', encoding='utf-8') as f:
             json.dump(data, f)
-    except Exception:
-        pass
+        os.replace(temp_path, CONFIG_PATH)
+    except OSError as exc:
+        try:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+        except OSError:
+            pass
+        raise HTTPException(status_code=500, detail=f'No se pudo guardar la configuración de copias: {exc}')
 
 
 @router.get('/backup')
@@ -41,6 +48,8 @@ def set_backup_config(payload: dict = Body(...), db: Session = Depends(get_db)):
         freq = int(freq)
     except Exception:
         raise HTTPException(status_code=400, detail='frequency_days must be integer')
+    if freq < 1:
+        raise HTTPException(status_code=400, detail='frequency_days must be at least 1')
 
     row = db.query(models.BackupSetting).first()
     if not row:

@@ -138,6 +138,20 @@ class Transaction(Base):
     user = relationship("User", back_populates="transactions")
     account = relationship("Account", back_populates="transactions")
     category = relationship("Category", back_populates="transactions")
+    history = relationship("TransactionHistory", back_populates="transaction", cascade="all, delete-orphan")
+
+
+class TransactionHistory(Base):
+    """Auditable record of every effective edit made to a transaction."""
+    __tablename__ = "transaction_history"
+
+    id = Column(Integer, primary_key=True, index=True)
+    transaction_id = Column(Integer, ForeignKey("transactions.id", ondelete="CASCADE"), nullable=False, index=True)
+    account_id = Column(Integer, ForeignKey("accounts.id"), nullable=False, index=True)
+    changes = Column(JSON, nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    transaction = relationship("Transaction", back_populates="history")
 
 
 # --- MODELO PRESUPUESTO MENSUAL ---

@@ -34,11 +34,24 @@ def read_config():
 def last_backup_time():
     if not os.path.exists(BACKUPS_DIR):
         return None
-    files = [os.path.join(BACKUPS_DIR, f) for f in os.listdir(BACKUPS_DIR) if f.startswith('backup_')]
+    files = []
+    for filename in os.listdir(BACKUPS_DIR):
+        if not filename.startswith('backup_'):
+            continue
+        path = os.path.join(BACKUPS_DIR, filename)
+        if not os.path.isfile(path) or os.path.getsize(path) == 0:
+            continue
+        # Do not let marker files written by an older failed implementation
+        # postpone a real automatic backup.
+        with open(path, 'rb') as backup_file:
+            if backup_file.read(32).startswith(b'Fallback backup created'):
+                continue
+        files.append(path)
     if not files:
         return None
     latest = max(files, key=os.path.getmtime)
-    return datetime.fromtimestamp(os.path.getmtime(latest))
+    # Keep this timezone-aware: `now` below is UTC-aware as well.
+    return datetime.fromtimestamp(os.path.getmtime(latest), tz=timezone.utc)
 
 def ensure_backups_dir():
     os.makedirs(BACKUPS_DIR, exist_ok=True)
@@ -99,11 +112,18 @@ def append_log(entry: dict):
         data = []
 
     data.append(entry)
+    temp_path = f'{log_path}.tmp'
     try:
-        with open(log_path, 'w') as f:
+        with open(temp_path, 'w', encoding='utf-8') as f:
             json.dump(data, f, default=str, indent=2, ensure_ascii=False)
-    except Exception:
-        pass
+        os.replace(temp_path, log_path)
+    except Exception as exc:
+        print(f'Could not update backup log: {exc}', file=sys.stderr)
+        try:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+        except OSError:
+            pass
 
 def current_balance():
     """Return the balance represented by paid transactions at backup time."""
@@ -159,6 +179,13 @@ def main(force=False):
             }
             append_log(entry)
         else:
+            # A failed pg_dump can leave an empty or partial file behind. It
+            # must not be considered the last backup on the next run.
+            try:
+                if os.path.exists(outfile):
+                    os.remove(outfile)
+            except OSError as exc:
+                print(f'Could not remove failed backup: {exc}', file=sys.stderr)
             print('Backup failed')
             return False
     else:
