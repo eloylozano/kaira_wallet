@@ -141,9 +141,10 @@
 	<NoteInput bind:value={description} label="Descripción" placeholder="Añadir nota..." />
 
 	<button
+		type="button"
 		onclick={submit}
 		disabled={saving}
-		class="w-full rounded-2xl bg-primary py-4 text-xs font-black uppercase"
+		class="w-full rounded-2xl bg-primary py-4 text-xs font-black uppercase transition-all active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none"
 	>
 		{saving ? 'Guardando...' : mode === 'create' ? 'Crear movimiento' : 'Guardar cambios'}
 	</button>
