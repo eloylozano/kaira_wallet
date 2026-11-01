@@ -47,7 +47,6 @@
                 itemStyle: { 
                     borderRadius: 10, 
                     borderColor: '#020617', // Color de fondo para separar sectores
-                    borderWidth: 3 
                 },
                 label: { show: false },
                 emphasis: {

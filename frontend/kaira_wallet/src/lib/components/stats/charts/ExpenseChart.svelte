@@ -55,8 +55,16 @@
         </div>
 
         <div class="relative flex-1 h-full flex items-end gap-[2px] pb-10">
+            
+            <!-- 🔹 LÍNEAS DE GRID HORIZONTALES -->
+            <div class="absolute inset-0 flex flex-col justify-between pointer-events-none pb-10 z-0">
+                <div class="w-full border-t border-dashed border-white/[0.04]"></div>
+                <div class="w-full border-t border-dashed border-white/[0.04]"></div>
+                <div class="w-full border-t border-dashed border-white/[0.04]"></div>
+            </div>
+
             {#each chartItems() as d}
-                <div class="group relative flex flex-1 flex-col justify-end items-center h-full">
+                <div class="group relative flex flex-1 flex-col justify-end items-center h-full z-10">
                     
                     <div
                         class="w-full rounded-t-[2px] transition-all duration-500 group-hover:bg-rose-500/80 

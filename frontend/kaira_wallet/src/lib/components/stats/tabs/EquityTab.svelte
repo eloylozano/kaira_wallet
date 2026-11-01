@@ -69,7 +69,7 @@
     <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <div class="kaira-panel rounded-[32px] p-6">
             <div class="mb-4">
-                <h2 class="text-[10px] font-black tracking-[0.2em] uppercase opacity-40">Asset Mix</h2>
+                <h2 class="text-[10px] font-black tracking-[0.2em] uppercase opacity-40">Portfolio</h2>
             </div>
             {#if !statsService.equityLoading}
                 <div class="h-64 w-full">
